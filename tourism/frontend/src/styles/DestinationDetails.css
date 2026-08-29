@@ -1,0 +1,1274 @@
+/* =========================================================
+   DESTINATION DETAILS PAGE
+========================================================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.destination-details-page {
+    min-height: 100vh;
+
+    background: #f7f5ef;
+
+    color: #193328;
+
+    font-family: "Poppins", sans-serif;
+}
+
+
+/* =========================================================
+   DESTINATION HERO
+========================================================= */
+
+.destination-detail-hero {
+    position: relative;
+
+    width: 100%;
+    height: 470px;
+
+    overflow: hidden;
+}
+
+.destination-detail-hero img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    display: block;
+}
+
+
+/* Dark overlay */
+
+.hero-dark-overlay {
+    position: absolute;
+
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    background:
+        linear-gradient(
+            to top,
+            rgba(5, 25, 17, 0.88),
+            rgba(5, 25, 17, 0.30),
+            rgba(5, 25, 17, 0.08)
+        );
+}
+
+
+/* =========================================================
+   DESTINATION HERO CONTENT
+========================================================= */
+
+.destination-detail-content {
+    position: absolute;
+
+    left: 9%;
+    bottom: 55px;
+
+    z-index: 2;
+
+    color: white;
+}
+
+.destination-category {
+    display: inline-block;
+
+    background: #e5b84b;
+
+    color: #17291f;
+
+    padding: 8px 20px;
+
+    border-radius: 30px;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    margin-bottom: 12px;
+}
+
+.destination-detail-content h1 {
+    margin: 0;
+
+    font-size: 52px;
+
+    line-height: 1.2;
+
+    font-weight: 700;
+
+    letter-spacing: -0.5px;
+}
+
+.destination-detail-content p {
+    margin-top: 10px;
+
+    font-size: 16px;
+
+    color: rgba(255, 255, 255, 0.92);
+}
+
+
+/* =========================================================
+   DESTINATION ABOUT SECTION
+========================================================= */
+
+.destination-about {
+    max-width: 1150px;
+
+    margin: 0 auto;
+
+    padding: 65px 30px 45px;
+}
+
+
+/* Small heading */
+
+.section-small-title {
+    display: inline-block;
+
+    color: #b28a2c;
+
+    font-size: 12px;
+
+    font-weight: 700;
+
+    letter-spacing: 2px;
+}
+
+
+/* Main heading */
+
+.destination-about h2 {
+    margin: 8px 0 18px;
+
+    color: #173527;
+
+    font-size: 32px;
+
+    line-height: 1.3;
+
+    font-weight: 700;
+}
+
+
+/* Description */
+
+.destination-description {
+    max-width: 900px;
+
+    color: #626c65;
+
+    font-size: 15px;
+
+    line-height: 1.9;
+}
+
+
+/* =========================================================
+   DESTINATION INFORMATION BOXES
+========================================================= */
+
+.destination-info-boxes {
+    display: flex;
+
+    align-items: stretch;
+
+    gap: 20px;
+
+    margin-top: 30px;
+
+    flex-wrap: wrap;
+}
+
+
+.destination-info-box {
+    display: flex;
+
+    align-items: center;
+
+    gap: 15px;
+
+    min-width: 250px;
+
+    background: #ffffff;
+
+    padding: 18px 25px;
+
+    border-radius: 12px;
+
+    border: 1px solid #ece9df;
+
+    box-shadow:
+        0 5px 20px rgba(0, 0, 0, 0.05);
+
+    transition: all 0.3s ease;
+}
+
+
+.destination-info-box:hover {
+    transform: translateY(-3px);
+
+    box-shadow:
+        0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+
+/* Information icon */
+
+.info-icon {
+    width: 42px;
+    height: 42px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #eee3bb;
+
+    font-size: 20px;
+}
+
+
+/* Information label */
+
+.destination-info-box small {
+    display: block;
+
+    margin-bottom: 3px;
+
+    color: #8c938e;
+
+    font-size: 11px;
+
+    font-weight: 500;
+}
+
+
+/* Information value */
+
+.destination-info-box strong {
+    display: block;
+
+    color: #20382a;
+
+    font-size: 14px;
+
+    font-weight: 600;
+}
+
+
+/* =========================================================
+   NEARBY SERVICES SECTION
+========================================================= */
+
+.nearby-services {
+    max-width: 1150px;
+
+    margin: 0 auto;
+
+    padding: 30px 30px 80px;
+}
+
+
+/* =========================================================
+   NEARBY SERVICES HEADING
+========================================================= */
+
+.nearby-heading {
+    margin-bottom: 30px;
+}
+
+
+.nearby-heading h2 {
+    margin: 8px 0 10px;
+
+    color: #173527;
+
+    font-size: 34px;
+
+    line-height: 1.3;
+
+    font-weight: 700;
+}
+
+
+.nearby-heading p {
+    max-width: 750px;
+
+    color: #69716b;
+
+    font-size: 14px;
+
+    line-height: 1.8;
+}
+
+
+/* =========================================================
+   SERVICE CATEGORY NAVIGATION
+========================================================= */
+
+.service-category-nav {
+    display: flex;
+
+    align-items: center;
+
+    width: 100%;
+
+    overflow-x: auto;
+
+    white-space: nowrap;
+
+    border-bottom: 1px solid #ddd8c8;
+
+    margin-top: 30px;
+
+    margin-bottom: 35px;
+
+    scrollbar-width: none;
+
+    -ms-overflow-style: none;
+}
+
+
+/* Hide Chrome scrollbar */
+
+.service-category-nav::-webkit-scrollbar {
+    display: none;
+}
+
+
+/* =========================================================
+   SERVICE CATEGORY BUTTON
+========================================================= */
+
+.service-category {
+    position: relative;
+
+    flex-shrink: 0;
+
+    border: none;
+
+    outline: none;
+
+    background: transparent;
+
+    padding: 15px 22px;
+
+    color: #727a74;
+
+    font-family: "Poppins", sans-serif;
+
+    font-size: 14px;
+
+    font-weight: 500;
+
+    cursor: pointer;
+
+    transition:
+        color 0.3s ease,
+        background 0.3s ease;
+}
+
+
+/* Hover */
+
+.service-category:hover {
+    color: #173527;
+}
+
+
+/* =========================================================
+   ACTIVE CATEGORY
+========================================================= */
+
+.service-category.active {
+    color: #173527;
+
+    font-weight: 700;
+}
+
+
+/* Gold active underline */
+
+.service-category.active::after {
+    content: "";
+
+    position: absolute;
+
+    left: 15px;
+    right: 15px;
+
+    bottom: -1px;
+
+    height: 3px;
+
+    background: #b28a2c;
+
+    border-radius: 5px 5px 0 0;
+}
+
+
+/* =========================================================
+   SELECTED SERVICE SECTION
+========================================================= */
+
+.selected-service-section {
+    width: 100%;
+
+    margin-top: 10px;
+}
+
+
+/* =========================================================
+   SELECTED SERVICE HEADING
+========================================================= */
+
+.selected-service-heading {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 15px;
+
+    margin-bottom: 22px;
+}
+
+
+.selected-service-heading h3 {
+    margin: 0;
+
+    color: #173527;
+
+    font-size: 24px;
+
+    line-height: 1.4;
+
+    font-weight: 700;
+}
+
+
+.selected-service-heading span {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    background: #e8d69c;
+
+    color: #314b3b;
+
+    padding: 6px 14px;
+
+    border-radius: 20px;
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   SERVICES GRID
+========================================================= */
+
+.services-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 22px;
+
+    width: 100%;
+}
+
+
+/* =========================================================
+   SERVICE CARD
+========================================================= */
+
+.nearby-service-card {
+    position: relative;
+
+    min-width: 0;
+
+    background: #ffffff;
+
+    border: 1px solid #ece9df;
+
+    border-radius: 14px;
+
+    overflow: hidden;
+
+    box-shadow:
+        0 5px 20px rgba(0, 0, 0, 0.06);
+
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease,
+        border-color 0.3s ease;
+}
+
+
+/* Hover */
+
+.nearby-service-card:hover {
+    transform: translateY(-5px);
+
+    border-color: #ddd0a3;
+
+    box-shadow:
+        0 12px 30px rgba(0, 0, 0, 0.11);
+}
+
+
+/* =========================================================
+   SERVICE CARD BODY
+========================================================= */
+
+.service-card-body {
+    padding: 24px;
+}
+
+
+/* =========================================================
+   SERVICE BADGE
+========================================================= */
+
+.service-badge {
+    display: inline-block;
+
+    padding: 6px 12px;
+
+    margin-bottom: 12px;
+
+    background: #eee3bb;
+
+    color: #314b3b;
+
+    border-radius: 20px;
+
+    font-size: 10px;
+
+    font-weight: 600;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.4px;
+}
+
+
+/* =========================================================
+   SERVICE BUSINESS NAME
+========================================================= */
+
+.service-card-body h4 {
+    margin: 0 0 10px;
+
+    color: #193328;
+
+    font-size: 19px;
+
+    line-height: 1.4;
+
+    font-weight: 700;
+}
+
+
+/* =========================================================
+   SERVICE LOCATION
+========================================================= */
+
+.service-card-body p {
+    margin: 5px 0;
+
+    color: #727a74;
+
+    font-size: 13px;
+
+    line-height: 1.6;
+}
+
+
+/* =========================================================
+   SERVICE DESCRIPTION
+========================================================= */
+
+.service-description {
+    margin-top: 12px !important;
+
+    color: #7b827d !important;
+
+    font-size: 12px !important;
+
+    line-height: 1.7 !important;
+}
+
+
+/* =========================================================
+   SERVICE DETAILS BUTTON
+========================================================= */
+
+.service-details-link {
+    display: inline-block;
+
+    margin-top: 15px;
+
+    padding: 0;
+
+    border: none;
+
+    outline: none;
+
+    background: transparent;
+
+    color: #b28a2c;
+
+    font-family: "Poppins", sans-serif;
+
+    font-size: 13px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition: color 0.3s ease;
+}
+
+
+.service-details-link:hover {
+    color: #173527;
+
+    text-decoration: underline;
+}
+
+
+/* =========================================================
+   NO SERVICES SECTION
+========================================================= */
+
+.no-services {
+    width: 100%;
+
+    background: #ffffff;
+
+    border: 1px solid #ece9df;
+
+    border-radius: 14px;
+
+    padding: 55px 25px;
+
+    text-align: center;
+
+    box-shadow:
+        0 5px 20px rgba(0, 0, 0, 0.04);
+}
+
+
+/* =========================================================
+   NO SERVICE ICON
+========================================================= */
+
+.no-service-icon {
+    margin-bottom: 12px;
+
+    font-size: 36px;
+}
+
+
+/* =========================================================
+   NO SERVICE HEADING
+========================================================= */
+
+.no-services h4 {
+    margin: 5px 0 8px;
+
+    color: #193328;
+
+    font-size: 18px;
+
+    font-weight: 600;
+}
+
+
+/* =========================================================
+   NO SERVICE DESCRIPTION
+========================================================= */
+
+.no-services p {
+    max-width: 500px;
+
+    margin: 0 auto;
+
+    color: #858c87;
+
+    font-size: 13px;
+
+    line-height: 1.7;
+}
+
+
+/* =========================================================
+   LOADING SECTION
+========================================================= */
+
+.destination-loading {
+    min-height: 80vh;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    background: #f7f5ef;
+
+    color: #173527;
+}
+
+
+.destination-loading h2 {
+    margin-top: 15px;
+
+    font-size: 20px;
+
+    font-weight: 600;
+}
+
+
+/* =========================================================
+   LOADING SPINNER
+========================================================= */
+
+.loader {
+    width: 45px;
+    height: 45px;
+
+    border: 4px solid #dedbd1;
+
+    border-top: 4px solid #b28a2c;
+
+    border-radius: 50%;
+
+    animation: destinationSpinner 1s linear infinite;
+}
+
+
+@keyframes destinationSpinner {
+
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+
+}
+
+
+/* =========================================================
+   ERROR SECTION
+========================================================= */
+
+.destination-error {
+    min-height: 80vh;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 30px;
+
+    background: #f7f5ef;
+
+    text-align: center;
+}
+
+
+.destination-error h2 {
+    margin-bottom: 20px;
+
+    color: #173527;
+
+    font-size: 24px;
+}
+
+
+/* =========================================================
+   ERROR BUTTON
+========================================================= */
+
+.destination-error button {
+    border: none;
+
+    outline: none;
+
+    background: #e5b84b;
+
+    color: #173527;
+
+    padding: 11px 25px;
+
+    border-radius: 25px;
+
+    font-family: "Poppins", sans-serif;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: all 0.3s ease;
+}
+
+
+.destination-error button:hover {
+    background: #c99d34;
+
+    transform: translateY(-2px);
+}
+
+
+/* =========================================================
+   TABLET RESPONSIVE
+========================================================= */
+
+@media (max-width: 1000px) {
+
+    .destination-detail-content {
+        left: 6%;
+    }
+
+
+    .destination-detail-content h1 {
+        font-size: 44px;
+    }
+
+
+    .destination-about,
+    .nearby-services {
+        padding-left: 25px;
+        padding-right: 25px;
+    }
+
+
+    .services-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+}
+
+
+/* =========================================================
+   TABLET SMALL
+========================================================= */
+
+@media (max-width: 768px) {
+
+    .destination-detail-hero {
+        height: 420px;
+    }
+
+
+    .destination-detail-content {
+        left: 30px;
+
+        bottom: 40px;
+    }
+
+
+    .destination-detail-content h1 {
+        font-size: 40px;
+    }
+
+
+    .destination-about {
+        padding-top: 50px;
+    }
+
+
+    .destination-about h2 {
+        font-size: 28px;
+    }
+
+
+    .nearby-heading h2 {
+        font-size: 29px;
+    }
+
+
+    .destination-info-boxes {
+        flex-direction: column;
+    }
+
+
+    .destination-info-box {
+        width: 100%;
+    }
+
+
+    .services-grid {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+
+    /* Hero */
+
+    .destination-detail-hero {
+        height: 370px;
+    }
+
+
+    .destination-detail-content {
+        left: 20px;
+
+        right: 20px;
+
+        bottom: 30px;
+    }
+
+
+    .destination-category {
+        padding: 7px 15px;
+
+        font-size: 11px;
+    }
+
+
+    .destination-detail-content h1 {
+        font-size: 34px;
+    }
+
+
+    .destination-detail-content p {
+        font-size: 13px;
+    }
+
+
+    /* About */
+
+    .destination-about {
+        padding: 45px 20px 35px;
+    }
+
+
+    .destination-about h2 {
+        font-size: 25px;
+    }
+
+
+    .destination-description {
+        font-size: 14px;
+
+        line-height: 1.8;
+    }
+
+
+    /* Information boxes */
+
+    .destination-info-boxes {
+        gap: 12px;
+
+        margin-top: 25px;
+    }
+
+
+    .destination-info-box {
+        min-width: 0;
+
+        padding: 16px 18px;
+    }
+
+
+    /* Nearby services */
+
+    .nearby-services {
+        padding: 25px 20px 60px;
+    }
+
+
+    .nearby-heading {
+        margin-bottom: 20px;
+    }
+
+
+    .nearby-heading h2 {
+        font-size: 26px;
+    }
+
+
+    .nearby-heading p {
+        font-size: 13px;
+    }
+
+
+    /* Category navigation */
+
+    .service-category-nav {
+        margin-top: 25px;
+
+        margin-bottom: 28px;
+    }
+
+
+    .service-category {
+        padding: 13px 17px;
+
+        font-size: 12px;
+    }
+
+
+    .service-category.active::after {
+        left: 10px;
+
+        right: 10px;
+    }
+
+
+    /* Selected category */
+
+    .selected-service-heading {
+        align-items: flex-start;
+
+        flex-direction: column;
+
+        gap: 10px;
+
+        margin-bottom: 18px;
+    }
+
+
+    .selected-service-heading h3 {
+        font-size: 21px;
+    }
+
+
+    .selected-service-heading span {
+        font-size: 11px;
+    }
+
+
+    /* Service cards */
+
+    .services-grid {
+        grid-template-columns: 1fr;
+
+        gap: 15px;
+    }
+
+
+    .service-card-body {
+        padding: 20px;
+    }
+
+
+    .service-card-body h4 {
+        font-size: 18px;
+    }
+
+
+    /* No services */
+
+    .no-services {
+        padding: 40px 20px;
+    }
+
+}
+
+
+/* =========================================================
+   VERY SMALL MOBILE
+========================================================= */
+
+@media (max-width: 400px) {
+
+    .destination-detail-hero {
+        height: 340px;
+    }
+
+
+    .destination-detail-content {
+        left: 16px;
+
+        right: 16px;
+
+        bottom: 25px;
+    }
+
+
+    .destination-detail-content h1 {
+        font-size: 30px;
+    }
+
+
+    .destination-about {
+        padding-left: 16px;
+
+        padding-right: 16px;
+    }
+
+
+    .nearby-services {
+        padding-left: 16px;
+
+        padding-right: 16px;
+    }
+
+
+    .service-category {
+        padding-left: 14px;
+
+        padding-right: 14px;
+    }
+
+}
+
+/* =========================================================
+   ADD TO TRIP & TOAST STYLES
+========================================================= */
+
+.trip-notification-toast {
+    position: fixed;
+    top: 75px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
+    font-size: 12.5px;
+    font-weight: 500;
+    background: #1c2621;
+    color: #ffffff;
+    border-left: 4px solid #728c7f;
+    animation: slideInRight 0.25s ease;
+    max-width: 420px;
+}
+
+.trip-notification-toast.error {
+    border-left-color: #d9534f;
+}
+
+.toast-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.toast-plan-btn {
+    background: #ffffff;
+    color: #1c2621;
+    border: 1px solid #ccd2cf;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 11.5px;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+}
+
+.toast-plan-btn:hover {
+    background: #eef1ef;
+}
+
+.toast-close-btn {
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 2px 4px;
+    opacity: 0.7;
+}
+
+.toast-close-btn:hover {
+    opacity: 1;
+}
+
+.service-card-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+
+.service-card-actions .service-details-link {
+    flex: 1;
+    text-align: center;
+    padding: 7px 10px;
+    font-size: 12px;
+}
+
+.add-to-trip-btn {
+    flex: 1;
+    background: #1c2621;
+    color: #ffffff;
+    border: 1px solid #1c2621;
+    padding: 7px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.add-to-trip-btn:hover {
+    background: #2b3931;
+    border-color: #2b3931;
+}
+
+.add-to-trip-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+

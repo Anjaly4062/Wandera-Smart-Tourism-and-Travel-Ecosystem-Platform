@@ -1,0 +1,215 @@
+.register-page {
+
+    min-height: 100vh;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+
+    background:
+
+    linear-gradient(
+        rgba(0,0,0,0.45),
+        rgba(0,0,0,0.45)
+    ),
+
+    url("../assets/hero.png");
+
+
+    background-size: cover;
+
+    background-position: center;
+
+}
+
+
+/* Registration Card */
+
+.register-card {
+
+    width: 380px;
+
+    padding: 28px 35px;
+
+    border-radius: 18px;
+
+
+    background: rgba(255,255,255,0.12);
+
+    backdrop-filter: blur(12px);
+
+
+    border:1px solid rgba(255,255,255,0.25);
+
+
+    box-shadow:
+    0 8px 25px rgba(0,0,0,0.3);
+
+
+}
+
+
+
+/* Heading */
+
+.register-card h1 {
+
+    text-align:center;
+
+    font-size:26px;
+
+    color:white;
+
+    margin-bottom:8px;
+
+}
+
+
+.register-card h1 span {
+
+    color:#55d6be;
+
+}
+
+
+.register-card p {
+
+    text-align:center;
+
+    color:#e5e5e5;
+
+    font-size:13px;
+
+    margin-bottom:20px;
+
+}
+
+
+
+/* Inputs */
+
+.register-card input,
+.register-card select {
+    width: 100%;
+    padding: 11px 14px;
+    margin-bottom: 12px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    font-size: 13.5px;
+    color: #0f172a;
+    outline: none;
+    font-family: "Poppins", sans-serif;
+}
+
+.register-card input::placeholder {
+    color: #64748b;
+}
+
+.register-card input:focus,
+.register-card select:focus {
+    outline: none;
+    border-color: #0789e8;
+    box-shadow: 0 0 0 3px rgba(7, 137, 232, 0.15);
+}
+
+
+
+/* Provider Fields Animation */
+
+.provider-fields {
+
+    animation:fade .3s ease;
+
+}
+
+
+
+@keyframes fade {
+
+
+from {
+
+    opacity:0;
+
+    transform:translateY(-10px);
+
+}
+
+
+to {
+
+    opacity:1;
+
+}
+
+
+}
+
+
+
+/* Button */
+
+.register-card button {
+
+
+    width:100%;
+
+
+    padding:12px;
+
+
+    margin-top:8px;
+
+
+    border:none;
+
+
+    border-radius:25px;
+
+
+    background:#55d6be;
+
+
+    color:#063b36;
+
+
+    font-size:15px;
+
+
+    font-weight:600;
+
+
+    cursor:pointer;
+
+
+    transition:.3s;
+
+
+}
+
+
+
+.register-card button:hover {
+    background:#3bbda5;
+}
+
+.back-home-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #55d6be;
+    text-decoration: none;
+    font-size: 13.5px;
+    font-weight: 500;
+    margin-bottom: 14px;
+    transition: 0.25s ease;
+}
+
+.back-home-link:hover {
+    color: #ffffff;
+    transform: translateX(-3px);
+}

@@ -1,0 +1,202 @@
+/* =========================================================
+   WANDERA ADMIN ADD DESTINATION PAGE
+   MATCHES ADMIN DASHBOARD THEMING & GRID LAYOUT
+========================================================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* TWO COLUMN GRID */
+.destinations-columns-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+/* FORM CARD & LIST CARD */
+.destination-form-card,
+.destinations-list-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 22px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+}
+
+.panel-card-header {
+    padding-bottom: 14px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.panel-card-header h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.panel-card-header p {
+    font-size: 10px;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+/* FORM STYLING */
+.destination-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.form-group-compact {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.form-group-compact label {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: #334155;
+}
+
+.form-group-compact input[type="text"],
+.form-group-compact input[type="file"],
+.form-group-compact select,
+.form-group-compact textarea {
+    width: 100%;
+    padding: 8px 11px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #0f172a;
+    font-size: 11.5px;
+    outline: none;
+    font-family: inherit;
+    transition: all 0.2s ease;
+}
+
+.form-group-compact input[type="text"]:focus,
+.form-group-compact select:focus,
+.form-group-compact textarea:focus {
+    border-color: #0284c7;
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
+}
+
+.form-row-two {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.status-radio-group {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    height: 36px;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: #334155;
+    cursor: pointer;
+}
+
+.radio-label input {
+    accent-color: #0284c7;
+    cursor: pointer;
+}
+
+.btn-submit-destination {
+    margin-top: 8px;
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    background: #0284c7;
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 11.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-submit-destination:hover {
+    background: #0369a1;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2);
+}
+
+.btn-submit-destination:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* REGISTERED DESTINATIONS TABLE */
+.destinations-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.destinations-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.destinations-table th {
+    background: #071526;
+    color: #ffffff;
+    padding: 10px 12px;
+    font-size: 9.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.destinations-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 11px;
+    color: #334155;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.destinations-table tr:hover {
+    background: #f8fafc;
+}
+
+.dest-thumb {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 1px solid #e2e8f0;
+}
+
+.dest-thumb-placeholder {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1100px) {
+    .destinations-columns-grid {
+        grid-template-columns: 1fr;
+    }
+}

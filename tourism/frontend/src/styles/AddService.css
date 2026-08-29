@@ -1,0 +1,484 @@
+/* =========================================================
+   ADD SERVICE PAGE
+   WANDERA SERVICE PROVIDER
+========================================================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.service-provider-layout {
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    background: #f4f7fb;
+    font-family: "Poppins", sans-serif;
+}
+
+
+/* =========================================================
+   MAIN CONTENT
+========================================================= */
+
+.add-service-content {
+    margin-left: 250px;
+    width: calc(100% - 250px);
+    min-height: 100vh;
+
+    padding: 28px 45px 50px;
+
+    background:
+        radial-gradient(
+            circle at 90% 10%,
+            rgba(0, 217, 255, 0.07),
+            transparent 22%
+        ),
+        #f4f7fb;
+}
+
+
+/* =========================================================
+   PAGE HEADER
+========================================================= */
+
+.page-header {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto 20px;
+}
+
+.page-header h2 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #17243a;
+    margin-bottom: 4px;
+}
+
+.page-header p {
+    font-size: 11px;
+    color: #7890ad;
+}
+
+.page-header p span {
+    padding: 0 6px;
+    color: #a5b4c7;
+}
+
+
+/* =========================================================
+   FORM CARD
+========================================================= */
+
+.add-service-card {
+    width: 100%;
+    max-width: 680px;
+
+    margin: 0 auto;
+
+    padding: 30px 36px;
+
+    background: #ffffff;
+
+    border-radius: 18px;
+
+    border: 1px solid #e5ebf3;
+
+    box-shadow:
+        0 12px 35px rgba(31, 55, 82, 0.09);
+}
+
+
+/* =========================================================
+   FORM HEADER
+========================================================= */
+
+.form-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+
+/* =========================================================
+   SERVICE ICON
+========================================================= */
+
+.service-icon {
+    width: 52px;
+    height: 52px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #eaf4ff;
+
+    color: #087ee8;
+
+    font-size: 27px;
+    font-weight: 400;
+}
+
+
+/* =========================================================
+   HEADER TEXT
+========================================================= */
+
+.form-header h1 {
+    font-size: 21px;
+    font-weight: 600;
+
+    color: #17243a;
+
+    margin-bottom: 3px;
+}
+
+.form-header p {
+    font-size: 11px;
+
+    color: #8194ad;
+
+    line-height: 1.5;
+}
+
+
+/* =========================================================
+   DIVIDER
+========================================================= */
+
+.form-divider {
+    width: 100%;
+    height: 1px;
+
+    background: #dfe7f0;
+
+    margin: 22px 0 25px;
+}
+
+
+/* =========================================================
+   FORM GROUP
+========================================================= */
+/* =========================================================
+   HORIZONTAL FORM FIELDS
+========================================================= */
+
+.form-group {
+    display: grid;
+    grid-template-columns: 190px 1fr;
+    align-items: center;
+    gap: 18px;
+
+    margin-bottom: 18px;
+}
+
+.form-group label {
+    margin: 0;
+
+    color: #17243a;
+
+    font-size: 11px;
+
+    font-weight: 600;
+}
+
+.form-group label span {
+    margin-left: 3px;
+    color: #0789e8;
+}
+
+
+/* =========================================================
+   INPUT + SELECT
+========================================================= */
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    height: 43px;
+
+    padding: 0 13px;
+
+    border: 1px solid #d7e1ec;
+
+    border-radius: 8px;
+
+    outline: none;
+
+    background: #ffffff;
+
+    color: #33465f;
+
+    font-family: "Poppins", sans-serif;
+
+    font-size: 11px;
+
+    transition: all 0.25s ease;
+}
+
+.form-group input::placeholder {
+    color: #9aaabd;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: #149fe8;
+
+    box-shadow:
+        0 0 0 3px rgba(20, 159, 232, 0.08);
+}
+
+.form-group select {
+    cursor: pointer;
+}
+
+/* =========================================================
+   INPUT FOCUS
+========================================================= */
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: #149fe8;
+
+    box-shadow:
+        0 0 0 3px rgba(20, 159, 232, 0.08);
+}
+
+
+/* =========================================================
+   SELECT
+========================================================= */
+
+.form-group select {
+    cursor: pointer;
+
+    appearance: auto;
+}
+
+.form-group select option {
+    background: #ffffff;
+    color: #17243a;
+}
+
+
+/* =========================================================
+   INFORMATION BOX
+========================================================= */
+
+.form-info {
+    width: 100%;
+
+    display: flex;
+    align-items: flex-start;
+
+    gap: 10px;
+
+    padding: 12px 13px;
+
+    margin-top: 4px;
+    margin-bottom: 20px;
+
+    border-radius: 8px;
+
+    background: #edf6ff;
+
+    border: 1px solid #d4e9fb;
+}
+
+
+/* INFO ICON */
+
+.info-icon {
+    color: #0789e8;
+
+    font-size: 15px;
+
+    line-height: 1;
+
+    flex-shrink: 0;
+}
+
+
+/* INFO TEXT */
+
+.form-info p {
+    color: #607b9a;
+
+    font-size: 9px;
+
+    line-height: 1.6;
+}
+
+
+/* =========================================================
+   CONTINUE BUTTON
+========================================================= */
+
+.continue-button {
+    width: 100%;
+
+    height: 43px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 10px;
+
+    border: none;
+
+    border-radius: 7px;
+
+    background: linear-gradient(
+        90deg,
+        #0bb2e8,
+        #2854c7
+    );
+
+    color: #ffffff;
+
+    font-family: "Poppins", sans-serif;
+
+    font-size: 11px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: all 0.25s ease;
+}
+
+.continue-button b {
+    font-size: 16px;
+
+    font-weight: 400;
+
+    transition: transform 0.25s ease;
+}
+
+
+/* =========================================================
+   BUTTON HOVER
+========================================================= */
+
+.continue-button:hover {
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 8px 20px rgba(26, 116, 211, 0.20);
+}
+
+.continue-button:hover b {
+    transform: translateX(4px);
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 900px) {
+
+    .add-service-content {
+        margin-left: 0;
+
+        width: 100%;
+
+        padding: 25px 25px 40px;
+    }
+
+    .add-service-card {
+        max-width: 650px;
+    }
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 700px) {
+
+    .add-service-content {
+        padding: 22px 18px 35px;
+    }
+
+    .page-header h2 {
+        font-size: 20px;
+    }
+
+    .add-service-card {
+        padding: 25px 22px;
+
+        border-radius: 15px;
+    }
+
+    .form-header h1 {
+        font-size: 19px;
+    }
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 450px) {
+
+    .add-service-content {
+        padding: 18px 12px 30px;
+    }
+
+    .add-service-card {
+        padding: 22px 17px;
+
+        border-radius: 13px;
+    }
+
+    .form-header {
+        gap: 11px;
+    }
+
+    .service-icon {
+        width: 43px;
+        height: 43px;
+
+        font-size: 23px;
+    }
+
+    .form-header h1 {
+        font-size: 18px;
+    }
+
+    .form-header p {
+        font-size: 9px;
+    }
+
+    .form-divider {
+        margin: 20px 0;
+    }
+
+    .form-group label {
+        font-size: 10px;
+    }
+
+    .form-group input,
+    .form-group select {
+        height: 41px;
+        font-size: 10px;
+    }
+
+    .form-info p {
+        font-size: 8.5px;
+    }
+
+    .continue-button {
+        height: 42px;
+    }
+}

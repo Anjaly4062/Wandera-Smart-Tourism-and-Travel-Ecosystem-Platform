@@ -1,0 +1,347 @@
+/* =========================================================
+   SERVICE PROVIDER PROFILE PAGE STYLES (COMPACT & REDUCED FONT)
+========================================================= */
+
+.provider-profile-container {
+    display: flex;
+    min-height: 100vh;
+    background-color: #f8fafc;
+    color: #0f172a;
+    font-family: "Poppins", -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 12.5px;
+}
+
+.provider-profile-main {
+    margin-left: 160px;
+    width: calc(100% - 160px);
+    min-height: 100vh;
+    padding: 24px 32px 60px;
+    background-color: #f8fafc;
+    box-sizing: border-box;
+}
+
+.profile-page-header {
+    margin-bottom: 20px;
+}
+
+.profile-page-header h1 {
+    font-size: 19px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+}
+
+.profile-page-header p {
+    font-size: 11.5px;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+/* PROFILE HERO / HEADER CARD */
+.profile-card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    padding: 18px 22px;
+    margin-bottom: 20px;
+    max-width: 860px;
+}
+
+.profile-hero-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.profile-hero-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.profile-avatar-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0284c7, #2563eb);
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25);
+    flex-shrink: 0;
+}
+
+.profile-user-meta h2 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+}
+
+.profile-user-meta p {
+    font-size: 11.5px;
+    color: #64748b;
+    margin-top: 1px;
+}
+
+.status-badge-active {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #dcfce7;
+    color: #166534;
+    font-size: 9.5px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin-top: 4px;
+}
+
+.status-badge-inactive {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #fee2e2;
+    color: #991b1b;
+    font-size: 9.5px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin-top: 4px;
+}
+
+.profile-hero-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-profile-edit {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    background: #0284c7;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.btn-profile-edit:hover {
+    background: #0369a1;
+}
+
+.btn-profile-password {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    background: #ffffff;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn-profile-password:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+}
+
+/* VERTICAL DETAILS LIST STYLES */
+.profile-vertical-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 860px;
+}
+
+.info-card-vertical {
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+    transition: all 0.15s ease;
+}
+
+.info-card-vertical:hover {
+    border-color: #cbd5e1;
+}
+
+.info-vertical-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.info-vertical-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: #f0f9ff;
+    color: #0284c7;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.info-card-label {
+    font-size: 9.5px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.info-card-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: #0f172a;
+    margin-top: 1px;
+    word-break: break-word;
+}
+
+.info-card-sub {
+    font-size: 10.5px;
+    color: #94a3b8;
+    text-align: right;
+    font-weight: 500;
+}
+
+/* LOADING STATE */
+.profile-loading {
+    padding: 40px;
+    text-align: center;
+    font-size: 12.5px;
+    color: #64748b;
+}
+
+/* INLINE / EDIT FORM STYLES */
+.edit-form-card {
+    background: #ffffff;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    padding: 20px;
+    margin-bottom: 20px;
+    max-width: 860px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.edit-form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.edit-form-header h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+}
+
+.edit-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.edit-form-group label {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: 3px;
+    display: block;
+}
+
+.edit-form-group input {
+    width: 100%;
+    height: 34px;
+    padding: 0 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 5px;
+    font-size: 12px;
+    color: #0f172a;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.edit-form-group input:focus {
+    border-color: #0284c7;
+}
+
+.edit-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.btn-save-profile {
+    padding: 7px 16px;
+    background: #0284c7;
+    color: #ffffff;
+    border: none;
+    border-radius: 5px;
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-cancel-profile {
+    padding: 7px 14px;
+    background: #ffffff;
+    color: #64748b;
+    border: 1px solid #cbd5e1;
+    border-radius: 5px;
+    font-size: 11.5px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+/* RESPONSIVE BREAKPOINTS */
+@media (max-width: 768px) {
+    .provider-profile-main {
+        margin-left: 0;
+        width: 100%;
+        padding: 16px 14px;
+    }
+
+    .info-card-vertical {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .info-card-sub {
+        text-align: left;
+    }
+
+    .edit-form-grid {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,0 +1,513 @@
+/* =========================================================
+   ViewDestination.css
+========================================================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: "Poppins", sans-serif;
+    color: #ffffff;
+    background: #10231c;
+}
+
+
+/* =========================================================
+   PAGE
+========================================================= */
+
+.destination-page {
+    min-height: 100vh;
+
+    background:
+        linear-gradient(
+            rgba(20, 38, 29, 0.42),
+            rgba(20, 38, 29, 0.52)
+        ),
+        url("../assets/hero.png");
+
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+
+    /* Background stays fixed */
+    background-attachment: fixed;
+
+    position: relative;
+}
+
+
+/* =========================================================
+   NAVBAR
+   Keeps navbar above page content
+========================================================= */
+
+.destination-page nav {
+    position: fixed !important;
+
+    top: 0;
+    left: 0;
+    width: 100%;
+
+    z-index: 9999 !important;
+}
+
+
+/* =========================================================
+   MAIN CONTAINER
+========================================================= */
+
+.destination-container {
+    width: 90%;
+    max-width: 1250px;
+
+    margin: 0 auto;
+
+    /*
+       Important:
+       Creates enough space below fixed navbar
+    */
+    padding-top: 95px;
+
+    padding-bottom: 50px;
+}
+
+
+/* =========================================================
+   HERO
+========================================================= */
+
+/* =========================================================
+   HERO SECTION (LEFT TITLE, WHITE SEARCH BAR ON RIGHT)
+========================================================= */
+
+.hero-section {
+    width: 100%;
+    min-height: 85px;
+    padding: 16px 28px;
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    background: rgba(17, 36, 28, 0.75);
+    border: 1px solid rgba(215, 178, 90, 0.25);
+    border-radius: 16px;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    position: relative;
+    z-index: 1;
+}
+
+.hero-flex-container {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.hero-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #ffffff;
+    white-space: nowrap;
+    margin: 0;
+}
+
+/* WHITE SEARCH BAR WITH SEARCH ICON AT THE END */
+.white-search-bar {
+    flex: 1;
+    max-width: 520px;
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    border-radius: 25px;
+    padding: 4px 18px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    transition: all 0.25s ease;
+}
+
+.white-search-bar:focus-within {
+    box-shadow: 0 0 0 3px rgba(215, 178, 90, 0.5), 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.white-search-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #0f172a;
+    font-family: "Poppins", sans-serif;
+    font-size: 13px;
+    padding: 8px 0;
+}
+
+.white-search-input::placeholder {
+    color: #64748b;
+    font-size: 12.5px;
+}
+
+.clear-search-btn-dark {
+    background: transparent;
+    border: none;
+    color: #64748b;
+    font-size: 13px;
+    cursor: pointer;
+    padding: 2px 6px;
+    margin-right: 6px;
+    transition: color 0.2s ease;
+}
+
+.clear-search-btn-dark:hover {
+    color: #ef4444;
+}
+
+.search-icon-end {
+    font-size: 16px;
+    color: #172019;
+    cursor: default;
+}
+
+
+/* =========================================================
+   DESTINATION GRID
+========================================================= */
+
+.destination-grid {
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 20px;
+
+    align-items: start;
+
+    position: relative;
+    z-index: 1;
+}
+
+
+/* =========================================================
+   DESTINATION CARD
+========================================================= */
+
+.destination-card {
+    width: 100%;
+
+    background: rgba(14, 34, 26, 0.92);
+
+    border-radius: 14px;
+
+    overflow: hidden;
+
+    border: 1px solid rgba(255, 255, 255, 0.08);
+
+    box-shadow:
+        0 7px 18px rgba(0, 0, 0, 0.25);
+
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
+.destination-card:hover {
+    transform: translateY(-4px);
+
+    box-shadow:
+        0 12px 25px rgba(0, 0, 0, 0.32);
+}
+
+
+/* =========================================================
+   IMAGE
+========================================================= */
+
+.image-wrapper {
+    position: relative;
+
+    width: 100%;
+
+    /*
+       Reduced image height
+    */
+    height: 125px;
+
+    overflow: hidden;
+}
+
+.destination-image {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    display: block;
+
+    transition: transform 0.4s ease;
+}
+
+.destination-card:hover .destination-image {
+    transform: scale(1.04);
+}
+
+
+/* =========================================================
+   CATEGORY BADGE
+========================================================= */
+
+.category-badge {
+    position: absolute;
+
+    top: 8px;
+    left: 8px;
+
+    padding: 4px 10px;
+
+    background: #d7b25a;
+
+    color: #172019;
+
+    border-radius: 18px;
+
+    font-size: 10px;
+
+    font-weight: 600;
+}
+
+
+/* =========================================================
+   CARD CONTENT
+========================================================= */
+
+.destination-content {
+    padding: 11px 13px 13px;
+}
+
+
+/* =========================================================
+   DESTINATION NAME
+========================================================= */
+
+.destination-content h3 {
+    font-size: 17px;
+
+    font-weight: 600;
+
+    line-height: 1.25;
+
+    color: #ffffff;
+
+    margin-bottom: 5px;
+}
+
+
+/* =========================================================
+   DESCRIPTION
+========================================================= */
+
+.description {
+    color: #d9dfdc;
+
+    font-size: 11.5px;
+
+    line-height: 1.45;
+
+    margin: 0;
+
+    /*
+       SHOW ONLY A SMALL PORTION
+       Maximum 2 lines
+    */
+
+    display: -webkit-box;
+
+    -webkit-line-clamp: 2;
+
+    -webkit-box-orient: vertical;
+
+    overflow: hidden;
+}
+
+
+/* =========================================================
+   VIEW DETAILS BUTTON
+========================================================= */
+
+.view-btn {
+    display: inline-block;
+
+    margin-top: 9px;
+
+    padding: 5px 12px;
+
+    background: #d7b25a;
+
+    color: #172019;
+
+    border: none;
+
+    border-radius: 18px;
+
+    text-decoration: none;
+
+    font-family: "Poppins", sans-serif;
+
+    font-size: 10.5px;
+
+    font-weight: 600;
+
+    line-height: 1.4;
+
+    cursor: pointer;
+
+    transition: all 0.3s ease;
+}
+
+.view-btn:hover {
+    background: #edc96f;
+
+    color: #172019;
+
+    transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   EMPTY
+========================================================= */
+
+.empty {
+    grid-column: 1 / -1;
+
+    text-align: center;
+
+    padding: 35px 20px;
+
+    background: rgba(18, 37, 29, 0.70);
+
+    border-radius: 14px;
+
+    color: #eeeeee;
+
+    font-size: 17px;
+}
+
+
+/* =========================================================
+   SCROLLBAR
+========================================================= */
+
+::-webkit-scrollbar {
+    width: 7px;
+}
+
+::-webkit-scrollbar-track {
+    background: #10231c;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #d7b25a;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #edc96f;
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 1050px) {
+
+    .destination-container {
+        width: 92%;
+        padding-top: 95px;
+    }
+
+    .destination-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 18px;
+    }
+
+    .hero-overlay h1 {
+        font-size: 32px;
+    }
+
+    .hero-overlay p {
+        font-size: 13px;
+    }
+
+    .image-wrapper {
+        height: 130px;
+    }
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 650px) {
+
+    .destination-page {
+        background-attachment: scroll;
+    }
+
+    .destination-container {
+        width: 92%;
+        padding-top: 85px;
+        padding-bottom: 35px;
+    }
+
+    .hero-section {
+        min-height: 115px;
+
+        padding: 18px 12px;
+
+        margin-bottom: 20px;
+    }
+
+    .hero-overlay h1 {
+        font-size: 28px;
+    }
+
+    .hero-overlay p {
+        font-size: 12px;
+    }
+
+    .destination-grid {
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+
+    .image-wrapper {
+        height: 145px;
+    }
+
+    .destination-content {
+        padding: 11px 13px 13px;
+    }
+
+    .destination-content h3 {
+        font-size: 17px;
+    }
+
+    .description {
+        font-size: 11.5px;
+    }
+
+    .view-btn {
+        font-size: 10.5px;
+        padding: 5px 12px;
+    }
+}

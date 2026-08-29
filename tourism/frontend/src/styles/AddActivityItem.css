@@ -1,0 +1,161 @@
+/* ADD ACTIVITY ITEM PAGE STYLES */
+.actitem-page-content {
+    margin-left: 250px;
+    width: calc(100% - 250px);
+    min-height: 100vh;
+    padding: 30px 50px 60px;
+    background: radial-gradient(circle at 90% 10%, rgba(7, 137, 232, 0.05), transparent 25%), #f4f7fb;
+    font-family: "Poppins", sans-serif;
+}
+
+.actitem-page-header {
+    max-width: 900px;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.actitem-page-header h2 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #17243a;
+}
+
+.actitem-page-header p {
+    font-size: 11px;
+    color: #7890ad;
+}
+
+.actitem-page-header p span {
+    padding: 0 6px;
+    color: #a5b4c7;
+}
+
+.actitem-form-card {
+    max-width: 900px;
+    margin: 0 auto;
+    background: #ffffff;
+    border: 1px solid #e3eaf2;
+    border-radius: 18px;
+    padding: 40px;
+    box-shadow: 0 10px 35px rgba(31, 55, 82, 0.06);
+}
+
+.actitem-form-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.actitem-icon {
+    width: 48px;
+    height: 48px;
+    background: #ecfdf5;
+    color: #059669;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    border: 1px solid #d1fae5;
+}
+
+.actitem-form-header h1 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.actitem-form-header p {
+    font-size: 11.5px;
+    color: #64748b;
+}
+
+.actitem-divider {
+    height: 1px;
+    background: #e2e8f0;
+    margin-bottom: 24px;
+}
+
+.actitem-section {
+    margin-bottom: 28px;
+}
+
+.actitem-section h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 4px;
+}
+
+.actitem-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 14px;
+}
+
+.actitem-form-group label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #334155;
+}
+
+.actitem-form-group label span {
+    color: #0789e8;
+}
+
+.actitem-form-group input,
+.actitem-form-group select,
+.actitem-form-group textarea {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+    font-family: "Poppins", sans-serif;
+    font-size: 11.5px;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    outline: none;
+}
+
+.actitem-form-group select option {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+}
+
+.actitem-form-group input:focus,
+.actitem-form-group select:focus,
+.actitem-form-group textarea:focus {
+    border-color: #0789e8;
+    box-shadow: 0 0 0 3px rgba(7, 137, 232, 0.1);
+}
+
+.actitem-two-column {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.actitem-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.save-actitem-button {
+    padding: 12px 28px;
+    background: linear-gradient(90deg, #0789e8, #1b49c4);
+    color: white;
+    border: none;
+    border-radius: 9px;
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(7, 137, 232, 0.25);
+}

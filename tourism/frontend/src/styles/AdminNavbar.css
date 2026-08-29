@@ -1,0 +1,168 @@
+/* =========================================================
+   WANDERA ADMIN SIDEBAR NAVBAR (COMPACT 210PX WIDTH)
+========================================================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.admin-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 210px;
+    height: 100vh;
+    background: #071526;
+    color: #ffffff;
+    padding: 20px 12px;
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+    border-right: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+/* BRAND LOGO */
+.admin-brand {
+    display: flex;
+    align-items: center;
+    padding: 0 4px 8px;
+}
+
+.admin-logo-icon {
+    width: 38px;
+    height: 38px;
+    background: #08D0F5;
+    color: #071526;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Poppins", sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    flex-shrink: 0;
+    box-shadow: 0 0 14px rgba(8, 208, 245, 0.2);
+}
+
+.admin-brand-text {
+    margin-left: 10px;
+}
+
+.admin-brand-text h2 {
+    margin: 0;
+    color: #ffffff;
+    font-family: "Poppins", sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.1;
+}
+
+.admin-brand-text p {
+    margin: 2px 0 0;
+    color: #8DA8C7;
+    font-family: "Poppins", sans-serif;
+    font-size: 8.5px;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+/* DIVIDER */
+.admin-divider {
+    width: 100%;
+    height: 1px;
+    background: #1c2b41;
+    margin: 16px 0 16px;
+}
+
+/* MENU */
+.admin-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.admin-menu-item {
+    position: relative;
+    width: 100%;
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    border-radius: 10px;
+    text-decoration: none;
+    color: #91A9C7;
+    font-family: "Poppins", sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    transition: background 0.25s ease, color 0.25s ease;
+}
+
+.admin-menu-item:hover {
+    color: #ffffff;
+    background: rgba(20, 88, 116, 0.25);
+}
+
+.admin-menu-item.active {
+    color: #00D9FF;
+    background: #0B3448;
+    font-weight: 600;
+}
+
+.admin-menu-item.active::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 3px;
+    height: 100%;
+    background: #00D9FF;
+    border-radius: 10px 0 0 10px;
+}
+
+/* BOTTOM DIVIDER & LOGOUT */
+.admin-bottom-divider {
+    width: 100%;
+    height: 1px;
+    background: #1c2b41;
+    margin-top: auto;
+    margin-bottom: 12px;
+}
+
+.admin-logout {
+    width: 100%;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    border: none;
+    background: transparent;
+    color: #91A9C7;
+    font-family: "Poppins", sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 10px;
+    text-align: left;
+    transition: background 0.25s ease, color 0.25s ease;
+}
+
+.admin-logout:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+/* RESPONSIVE */
+@media (max-width: 800px) {
+    .admin-sidebar {
+        width: 60px;
+        padding: 15px 8px;
+    }
+
+    .admin-brand-text,
+    .admin-menu-item span,
+    .admin-logout span {
+        display: none;
+    }
+}

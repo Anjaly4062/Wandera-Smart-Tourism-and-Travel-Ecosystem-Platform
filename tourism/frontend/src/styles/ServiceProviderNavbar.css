@@ -1,0 +1,148 @@
+/* =========================================================
+   WANDERA SERVICE PROVIDER NAVBAR (COMPACT 160PX WIDTH)
+========================================================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* =========================================================
+   SIDEBAR
+========================================================= */
+
+.provider-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 160px;
+    height: 100vh;
+    background: #071526;
+    color: #ffffff;
+    padding: 20px 8px;
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* =========================================================
+   BRAND
+========================================================= */
+
+.provider-brand {
+    display: flex;
+    flex-direction: column;
+    padding: 0 8px;
+}
+
+.provider-brand-text h2 {
+    margin: 0;
+    color: #ffffff;
+    font-family: "Poppins", sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.3px;
+}
+
+.provider-brand-text p {
+    margin: 2px 0 0;
+    color: #8DA8C7;
+    font-family: "Poppins", sans-serif;
+    font-size: 8.5px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+}
+
+/* =========================================================
+   DIVIDER
+========================================================= */
+
+.provider-divider {
+    width: 100%;
+    height: 1px;
+    background: #1c2b41;
+    margin: 12px 0 14px;
+}
+
+/* =========================================================
+   NAVIGATION MENU (TEXT ONLY)
+========================================================= */
+
+.provider-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1;
+}
+
+.provider-menu-item {
+    position: relative;
+    width: 100%;
+    min-height: 38px;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    border-radius: 6px;
+    text-decoration: none;
+    color: #91A9C7;
+    font-family: "Poppins", sans-serif;
+    font-size: 12.5px;
+    font-weight: 500;
+    transition: all 0.15s ease;
+}
+
+.provider-menu-item:hover {
+    color: #ffffff;
+    background: rgba(0, 217, 255, 0.08);
+}
+
+.provider-menu-item.active {
+    color: #00D9FF;
+    background: #0B3448;
+    font-weight: 600;
+}
+
+/* =========================================================
+   BOTTOM LOGOUT
+========================================================= */
+
+.provider-bottom-divider {
+    width: 100%;
+    height: 1px;
+    background: #1c2b41;
+    margin: 10px 0;
+}
+
+.provider-logout {
+    width: 100%;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: #f87171;
+    font-family: "Poppins", sans-serif;
+    font-size: 12.5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.provider-logout:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+@media (max-width: 768px) {
+    .provider-sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+    }
+}

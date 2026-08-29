@@ -1,0 +1,471 @@
+/* ==========================================
+   WANDERA - SERVICE DETAILS COMPACT STYLING
+========================================== */
+
+* {
+    box-sizing: border-box;
+}
+
+.service-details-page {
+    min-height: 100vh;
+    background: #f8f8f6;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #2c332e;
+    font-size: 13px;
+}
+
+/* ==========================================
+   HERO SECTION (COMPACT)
+========================================== */
+
+.service-hero {
+    position: relative;
+    height: 220px;
+    background: linear-gradient(160deg, #1c2b23 0%, #16241d 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 16px;
+}
+
+.service-hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, transparent 40%, rgba(0, 0, 0, 0.3) 100%);
+    pointer-events: none;
+}
+
+.service-hero-content {
+    position: relative;
+    z-index: 2;
+    color: #ffffff;
+    max-width: 700px;
+    padding: 10px;
+}
+
+.service-type-badge {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.15);
+    color: #f1f3f2;
+    padding: 3px 12px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.service-hero-content h1 {
+    margin: 0 0 6px;
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+    line-height: 1.25;
+    color: #ffffff;
+}
+
+.service-hero-content p {
+    margin: 0;
+    font-size: 12.5px;
+    font-weight: 400;
+    color: #cdd9d2;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* ==========================================
+   CONTAINER & BACK BUTTON
+========================================= */
+
+.service-container {
+    width: min(1060px, 94%);
+    margin: 0 auto;
+    padding: 16px 0 60px;
+}
+
+.service-back-wrapper {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 16px;
+}
+
+.service-back-button {
+    border: 1px solid #d4d8d5;
+    background: #ffffff;
+    color: #2c332e;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 6px 14px;
+    border-radius: 5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s ease;
+}
+
+.service-back-button:hover {
+    background: #f0f2f0;
+    color: #1a231d;
+    border-color: #b0b8b2;
+}
+
+/* ==========================================
+   SECTION HEADING (COMPACT)
+========================================== */
+
+.section-heading {
+    margin-bottom: 14px;
+}
+
+.section-heading > span {
+    display: block;
+    color: #60796c;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+}
+
+.section-heading h2 {
+    margin: 0;
+    color: #1c2621;
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+}
+
+.section-heading p {
+    color: #6a7970;
+    margin-top: 3px;
+    font-size: 12px;
+}
+
+/* ==========================================
+   GALLERY SECTION (COMPACT)
+========================================== */
+
+.hotel-gallery-section {
+    margin-bottom: 28px;
+}
+
+.hotel-gallery {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+.gallery-image {
+    height: 140px;
+    overflow: hidden;
+    border-radius: 6px;
+    background: #e6eae7;
+    border: 1px solid #e0dfd9;
+    position: relative;
+}
+
+.gallery-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.gallery-image:hover img {
+    transform: scale(1.04);
+}
+
+/* ==========================================
+   ABOUT SECTION (COMPACT)
+========================================== */
+
+.hotel-about-section {
+    background: #ffffff;
+    padding: 18px 20px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+    border: 1px solid #e2e2dd;
+}
+
+.hotel-description {
+    color: #4a5c52;
+    font-size: 13px;
+    line-height: 1.65;
+    margin: 0;
+}
+
+/* ==========================================
+   CARDS GRID (ROOMS / VEHICLES / PACKAGES)
+========================================== */
+
+.hotel-rooms-section {
+    margin-bottom: 28px;
+}
+
+.rooms-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.room-detail-card {
+    background: #ffffff;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #e2e2dd;
+    transition: box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.room-detail-card:hover {
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+    border-color: #cbcfcc;
+}
+
+.room-main-image {
+    width: 100%;
+    height: 150px;
+    background: #eceee9;
+    overflow: hidden;
+}
+
+.room-main-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.room-detail-card:hover .room-main-image img {
+    transform: scale(1.03);
+}
+
+.room-content {
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.room-content h3 {
+    margin: 0 0 6px;
+    color: #1c2621;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.room-description {
+    color: #607067;
+    font-size: 12px;
+    line-height: 1.5;
+    margin-bottom: 12px;
+    flex-grow: 1;
+}
+
+.room-info {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.room-info > div {
+    padding: 7px 10px;
+    background: #fafaf8;
+    border-radius: 5px;
+    border: 1px solid #e6e5df;
+}
+
+.room-info span {
+    font-size: 14px;
+    display: block;
+    margin-bottom: 2px;
+}
+
+.room-info p {
+    margin: 0 0 1px;
+    color: #728078;
+    font-size: 9.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.room-info strong {
+    color: #1c2621;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.room-price {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    padding-top: 10px;
+    border-top: 1px solid #ebeae4;
+    margin-top: auto;
+}
+
+.room-price span {
+    color: #728078;
+    font-size: 11px;
+}
+
+.room-price strong {
+    color: #1c2621;
+    font-size: 16px;
+    font-weight: 700;
+    margin-left: auto;
+}
+
+.room-price small {
+    color: #728078;
+    font-size: 11px;
+}
+
+/* ==========================================
+   SERVICE PROVIDER CONTACT SECTION
+========================================== */
+
+.provider-section {
+    margin-bottom: 24px;
+}
+
+.provider-card {
+    background: #1c2621;
+    color: #ffffff;
+    padding: 18px 22px;
+    border-radius: 8px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.provider-card span {
+    display: block;
+    color: #a7b7ae;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.provider-card strong {
+    font-size: 13px;
+    font-weight: 600;
+    color: #ffffff;
+    word-break: break-word;
+}
+
+/* ==========================================
+   LOADING & ERROR STATES
+========================================== */
+
+.service-loading {
+    min-height: 50vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #2c332e;
+}
+
+.loading-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #e0dacb;
+    border-top-color: #1c2621;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 12px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.service-error {
+    min-height: 50vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 24px;
+}
+
+.service-error h2 {
+    color: #1c2621;
+    margin-bottom: 6px;
+    font-size: 18px;
+}
+
+.service-error p {
+    color: #65776d;
+    margin-bottom: 16px;
+    font-size: 13px;
+}
+
+.service-error button {
+    border: none;
+    background: #1c2621;
+    color: #ffffff;
+    padding: 8px 18px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 12.5px;
+    transition: background 0.15s ease;
+}
+
+.service-error button:hover {
+    background: #2a3a32;
+}
+
+/* ==========================================
+   RESPONSIVE LAYOUT
+========================================== */
+
+@media (max-width: 992px) {
+    .hotel-gallery {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .provider-card {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .service-hero {
+        height: 180px;
+    }
+
+    .service-hero-content h1 {
+        font-size: 20px;
+    }
+
+    .rooms-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .provider-card {
+        grid-template-columns: 1fr;
+        padding: 16px;
+    }
+
+    .hotel-about-section {
+        padding: 14px;
+    }
+}

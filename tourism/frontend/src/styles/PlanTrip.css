@@ -1,0 +1,864 @@
+/* =========================================================
+   WANDERA - PLAN YOUR TRIP / MY TRIP STYLING
+========================================================= */
+
+.plan-trip-page {
+    min-height: 100vh;
+    background: #f7f8f6;
+    color: #18261f;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 13px;
+}
+
+/* =========================================================
+   1. NAVBAR TOP CONTAINER
+========================================================= */
+
+.navbar-top-wrapper {
+    background: #18261f;
+    width: 100%;
+    position: relative;
+    height: 64px;
+}
+
+.navbar-top-wrapper .navbar {
+    position: relative;
+    height: 100%;
+    background: transparent;
+}
+
+/* =========================================================
+   2. PAGE HEADER SPACING
+========================================================= */
+
+.plan-trip-header {
+    background: #eef2ef;
+    border-bottom: 1px solid #e1e7e3;
+    padding: 36px 20px 28px;
+    text-align: center;
+}
+
+.header-inner {
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+.trip-planner-badge {
+    display: inline-block;
+    background: #18261f;
+    color: #ffffff;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.plan-trip-header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 6px;
+    color: #18261f;
+    letter-spacing: -0.3px;
+}
+
+.plan-trip-header p {
+    font-size: 13px;
+    color: #55675c;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* =========================================================
+   3. MAIN TWO-COLUMN CONTAINER
+========================================================= */
+
+.plan-trip-container {
+    max-width: 1140px;
+    margin: 28px auto 60px;
+    padding: 0 20px;
+}
+
+.plan-trip-grid-layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 24px;
+    align-items: flex-start;
+}
+
+/* =========================================================
+   4. LEFT COLUMN - SELECTED SERVICES
+========================================================= */
+
+.selected-services-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.services-column-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #ffffff;
+    padding: 12px 18px;
+    border-radius: 8px;
+    border: 1px solid #e2e5e3;
+}
+
+.services-column-top h2 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #18261f;
+    margin: 0;
+}
+
+.clear-cart-btn {
+    background: transparent;
+    border: 1px solid #d4dad6;
+    color: #607268;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 11.5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.clear-cart-btn:hover {
+    background: #f1f4f2;
+    color: #18261f;
+    border-color: #b0bcb5;
+}
+
+/* =========================================================
+   CATEGORY SECTION GROUP
+========================================================= */
+
+.service-category-group {
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 18px;
+    border: 1px solid #e2e5e3;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.category-section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #edf0ee;
+}
+
+.cat-icon {
+    font-size: 16px;
+}
+
+.category-section-title h3 {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: #18261f;
+    margin: 0;
+}
+
+.cat-badge {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: #506458;
+    background: #eff3f0;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-left: auto;
+}
+
+/* =========================================================
+   5. SERVICE CARD ITEM
+   (Clear separation: Service Details & Booking Details)
+========================================================= */
+
+.service-card-item {
+    background: #fafaf8;
+    border: 1px solid #e0e4e1;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 14px;
+}
+
+.service-card-item:last-child {
+    margin-bottom: 0;
+}
+
+/* 5.1 TOP PART: SERVICE DETAILS */
+.service-details-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.service-thumb-photo {
+    width: 64px;
+    height: 64px;
+    border-radius: 6px;
+    object-fit: cover;
+    border: 1px solid #d4dad6;
+    flex-shrink: 0;
+}
+
+.service-meta-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.service-badge-name-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 2px;
+}
+
+.category-tag {
+    background: #18261f;
+    color: #ffffff;
+    font-size: 9.5px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 3px;
+    text-transform: uppercase;
+}
+
+.service-meta-content h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #18261f;
+    margin: 0;
+}
+
+.service-location-text {
+    font-size: 12px;
+    color: #607268;
+    margin: 0;
+}
+
+.service-action-buttons {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.btn-service-view {
+    height: 28px;
+    padding: 0 10px;
+    font-size: 11.5px;
+    font-weight: 500;
+    background: #ffffff;
+    border: 1px solid #ccd3cf;
+    color: #2c3e34;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.btn-service-view:hover {
+    background: #f0f3f1;
+    color: #18261f;
+}
+
+.btn-service-remove {
+    height: 28px;
+    padding: 0 10px;
+    font-size: 11.5px;
+    font-weight: 500;
+    background: #ffffff;
+    border: 1px solid #eed8d8;
+    color: #b33939;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.btn-service-remove:hover {
+    background: #fbf0f0;
+    border-color: #e5b0b0;
+}
+
+/* SUBTLE DIVIDER */
+.card-section-divider {
+    height: 1px;
+    background: #e2e6e3;
+    margin: 14px 0 12px;
+}
+
+/* 5.2 BOTTOM PART: BOOKING DETAILS FORM */
+.booking-details-section {
+    background: #ffffff;
+    border: 1px solid #e2e6e3;
+    border-radius: 6px;
+    padding: 14px 16px;
+}
+
+.booking-section-heading {
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #55675c;
+    margin-bottom: 12px;
+}
+
+.booking-fields-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 16px;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.form-field.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-field label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #4a5c51;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin: 0;
+}
+
+.form-field input,
+.form-field select {
+    height: 34px;
+    padding: 0 10px;
+    border: 1px solid #ced5d0;
+    border-radius: 4px;
+    font-size: 12.5px;
+    color: #18261f;
+    background: #ffffff;
+    font-family: inherit;
+    transition: border-color 0.15s;
+    width: 100%;
+}
+
+.form-field input:focus,
+.form-field select:focus {
+    outline: none;
+    border-color: #18261f;
+}
+
+.card-calc-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 10px;
+    border-top: 1px dashed #e2e6e3;
+    margin-top: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 12px;
+}
+
+.calc-breakdown {
+    color: #55675c;
+    font-size: 11.5px;
+}
+
+.calc-hint {
+    color: #78897f;
+    font-style: italic;
+}
+
+.calc-total {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.calc-total strong {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #18261f;
+}
+
+/* =========================================================
+   ADD MORE SERVICES BUTTON
+========================================================= */
+
+.add-more-services-row {
+    text-align: center;
+    margin-top: 4px;
+}
+
+.btn-add-more-services {
+    background: #ffffff;
+    color: #18261f;
+    border: 1px dashed #9ca8a1;
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    width: 100%;
+}
+
+.btn-add-more-services:hover {
+    background: #f1f4f2;
+    border-color: #18261f;
+}
+
+/* =========================================================
+   6. RIGHT COLUMN - TRIP SUMMARY
+========================================================= */
+
+.trip-summary-column {
+    position: sticky;
+    top: 20px;
+}
+
+.trip-summary-panel {
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid #e2e5e3;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+}
+
+.summary-panel-header h3 {
+    font-size: 13.5px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #18261f;
+    margin: 0 0 12px;
+    text-transform: uppercase;
+}
+
+.summary-destination-box {
+    background: #f4f6f4;
+    border-left: 3px solid #18261f;
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+}
+
+.dest-tag {
+    font-size: 9.5px;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: #65776d;
+}
+
+.summary-destination-box h4 {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #18261f;
+    margin: 2px 0;
+}
+
+.summary-destination-box p {
+    font-size: 11px;
+    color: #65776d;
+    margin: 0;
+}
+
+.summary-dates-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #fafaf8;
+    border: 1px solid #e4e7e4;
+    padding: 6px 10px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+    font-size: 11.5px;
+}
+
+.summary-dates-card small {
+    display: block;
+    font-size: 9.5px;
+    color: #728278;
+}
+
+.summary-dates-card strong {
+    font-size: 11.5px;
+    color: #18261f;
+}
+
+.date-arrow {
+    color: #92a098;
+    font-weight: 600;
+}
+
+.summary-line-divider {
+    height: 1px;
+    background: #eaedea;
+    margin: 12px 0;
+}
+
+.summary-items-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.summary-price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12.5px;
+    color: #3c4c42;
+}
+
+.summary-price-row strong {
+    color: #18261f;
+    font-size: 12.5px;
+}
+
+.text-free {
+    color: #2b7a4b !important;
+}
+
+.summary-grand-total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    margin-bottom: 16px;
+}
+
+.summary-grand-total-row span {
+    font-size: 13px;
+    font-weight: 700;
+    color: #18261f;
+    letter-spacing: 0.5px;
+}
+
+.summary-grand-total-row strong {
+    font-size: 19px;
+    font-weight: 800;
+    color: #18261f;
+}
+
+.btn-book-this-trip {
+    width: 100%;
+    background: #18261f;
+    color: #ffffff;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.btn-book-this-trip:hover {
+    background: #293f34;
+}
+
+.btn-book-this-trip:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* =========================================================
+   EMPTY STATE & MODAL
+========================================================= */
+
+.empty-trip-card {
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 40px 20px;
+    text-align: center;
+    max-width: 480px;
+    margin: 30px auto;
+    border: 1px solid #e2e5e3;
+}
+
+.empty-trip-icon {
+    font-size: 36px;
+    margin-bottom: 10px;
+}
+
+.empty-trip-card h2 {
+    font-size: 17px;
+    font-weight: 600;
+    color: #18261f;
+    margin: 0 0 6px;
+}
+
+.empty-trip-card p {
+    font-size: 12.5px;
+    color: #65776d;
+    margin-bottom: 18px;
+    line-height: 1.5;
+}
+
+.explore-destinations-btn {
+    background: #18261f;
+    color: #ffffff;
+    border: none;
+    padding: 9px 18px;
+    border-radius: 5px;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.explore-destinations-btn:hover {
+    background: #293f34;
+}
+
+.booking-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(20, 26, 22, 0.6);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+
+.booking-success-modal {
+    background: #ffffff;
+    border-radius: 10px;
+    max-width: 460px;
+    width: 100%;
+    padding: 24px 20px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-success-icon {
+    width: 36px;
+    height: 36px;
+    background: #e6f3eb;
+    color: #2b7a4b;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.booking-success-modal h2 {
+    font-size: 17px;
+    font-weight: 600;
+    color: #18261f;
+    margin: 0 0 4px;
+}
+
+.modal-lead {
+    font-size: 12px;
+    color: #65776d;
+    margin: 0 0 14px;
+}
+
+.booking-id-banner {
+    background: #18261f;
+    color: #ffffff;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 14px;
+}
+
+.booking-id-banner span {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #b0bfb7;
+    display: block;
+    margin-bottom: 2px;
+}
+
+.booking-id-banner h3 {
+    font-size: 17px;
+    font-weight: 700;
+    margin: 0;
+    color: #ffffff;
+}
+
+.modal-booking-summary {
+    background: #f8f8f6;
+    border: 1px solid #e4e7e4;
+    border-radius: 6px;
+    padding: 12px;
+    text-align: left;
+    margin-bottom: 16px;
+}
+
+.modal-meta-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e6e9e6;
+    margin-bottom: 10px;
+}
+
+.modal-meta-row small {
+    display: block;
+    font-size: 10px;
+    color: #728278;
+}
+
+.modal-meta-row strong {
+    font-size: 12px;
+    color: #18261f;
+}
+
+.status-pill {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 8px;
+    font-size: 9.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-pill.confirmed {
+    background: #e6f4ea;
+    color: #1e7e34;
+}
+
+.modal-items-list h4 {
+    font-size: 11.5px;
+    color: #18261f;
+    margin: 0 0 6px;
+}
+
+.modal-service-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    font-size: 11.5px;
+    border-bottom: 1px dashed #e2e6e3;
+}
+
+.modal-service-item:last-child {
+    border-bottom: none;
+}
+
+.item-cat-badge {
+    background: #18261f;
+    color: #ffffff;
+    font-size: 9px;
+    font-weight: 600;
+    padding: 1px 5px;
+    border-radius: 2px;
+    margin-right: 6px;
+}
+
+.modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.modal-profile-btn {
+    background: #18261f;
+    color: #ffffff;
+    border: none;
+    padding: 9px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.modal-profile-btn:hover {
+    background: #293f34;
+}
+
+.modal-destinations-btn {
+    background: transparent;
+    color: #18261f;
+    border: 1px solid #ccd3cf;
+    padding: 8px;
+    border-radius: 5px;
+    font-size: 11.5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.modal-destinations-btn:hover {
+    background: #f1f4f2;
+}
+
+.plan-trip-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 40vh;
+    gap: 12px;
+}
+
+.loading-spinner {
+    width: 30px;
+    height: 30px;
+    border: 3px solid #e0dacb;
+    border-top-color: #18261f;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* =========================================================
+   RESPONSIVE DESIGN
+========================================================= */
+
+@media (max-width: 920px) {
+    .plan-trip-grid-layout {
+        grid-template-columns: 1fr;
+    }
+    .trip-summary-column {
+        position: static;
+    }
+}
+
+@media (max-width: 600px) {
+    .booking-fields-grid {
+        grid-template-columns: 1fr;
+    }
+    .service-details-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .service-action-buttons {
+        width: 100%;
+        justify-content: flex-end;
+    }
+    .modal-meta-row {
+        grid-template-columns: 1fr;
+    }
+}

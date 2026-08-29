@@ -1,0 +1,313 @@
+/* =========================================================
+   SERVICE PROVIDER BOOKINGS DASHBOARD STYLES (COMPACT)
+========================================================= */
+
+.provider-bookings-layout {
+    min-height: 100vh;
+    display: flex;
+    background: #f8fafc;
+    font-family: "Poppins", -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #0f172a;
+}
+
+.provider-bookings-main {
+    margin-left: 160px;
+    width: calc(100% - 160px);
+    padding: 24px 30px 60px;
+    min-height: 100vh;
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.provider-bookings-header {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 18px 24px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.header-type-badge {
+    display: inline-block;
+    background: #e0f2fe;
+    color: #0369a1;
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-bottom: 4px;
+}
+
+.provider-bookings-header h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 3px;
+}
+
+.provider-bookings-header p {
+    font-size: 12.5px;
+    color: #64748b;
+    margin: 0;
+}
+
+/* =========================================================
+   BOOKING CARDS
+========================================================= */
+
+.bookings-cards-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.provider-booking-card {
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+    overflow: hidden;
+    transition: box-shadow 0.15s;
+}
+
+.provider-booking-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.card-header-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8fafc;
+    padding: 10px 16px;
+    border-bottom: 1px solid #e2e8f0;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.header-meta-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.booking-ref-tag {
+    background: #0f172a;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+}
+
+.service-sub-tag {
+    background: #f1f5f9;
+    color: #334155;
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid #e2e8f0;
+}
+
+.destination-tag {
+    font-size: 11.5px;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.header-meta-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.price-tag {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.status-pill-badge.confirmed {
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 12px;
+    text-transform: uppercase;
+}
+
+/* =========================================================
+   CARD BODY GRID
+========================================================= */
+
+.card-body-grid {
+    display: grid;
+    grid-template-columns: 1fr 270px;
+    padding: 14px 16px;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.service-specific-details h4 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 10px;
+}
+
+.specific-data-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+    background: #f8fafc;
+    padding: 10px 12px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+}
+
+.specific-data-grid div small {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: 1px;
+}
+
+.specific-data-grid div strong {
+    font-size: 12px;
+    color: #0f172a;
+}
+
+/* TOURIST CONTACT BLOCK */
+.tourist-contact-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 10px 12px;
+}
+
+.tourist-contact-card h5 {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #334155;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 6px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 3px;
+}
+
+.tourist-info-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11.5px;
+    margin-bottom: 3px;
+    gap: 6px;
+}
+
+.tourist-info-row span {
+    color: #64748b;
+}
+
+.tourist-info-row strong {
+    color: #0f172a;
+}
+
+.tourist-info-row a {
+    color: #0284c7;
+    text-decoration: none;
+    word-break: break-all;
+}
+
+.tourist-info-row a:hover {
+    text-decoration: underline;
+}
+
+.tourist-info-row small {
+    color: #64748b;
+    font-size: 10.5px;
+}
+
+/* =========================================================
+   EMPTY & LOADING STATES
+========================================================= */
+
+.empty-bookings-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 40px 20px;
+    text-align: center;
+    max-width: 500px;
+    margin: 20px auto;
+}
+
+.empty-icon {
+    font-size: 34px;
+    margin-bottom: 8px;
+}
+
+.empty-bookings-card h3 {
+    font-size: 16px;
+    color: #0f172a;
+    margin-bottom: 4px;
+}
+
+.empty-bookings-card p {
+    font-size: 12.5px;
+    color: #64748b;
+    line-height: 1.5;
+}
+
+.provider-bookings-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 40vh;
+    gap: 10px;
+}
+
+.loading-spinner {
+    width: 28px;
+    height: 28px;
+    border: 3px solid #e2e8f0;
+    border-top-color: #0284c7;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 900px) {
+    .card-body-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .provider-bookings-main {
+        margin-left: 0;
+        width: 100%;
+        padding: 16px 12px;
+    }
+}

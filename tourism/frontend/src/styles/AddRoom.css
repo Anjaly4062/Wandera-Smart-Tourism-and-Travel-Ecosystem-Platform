@@ -1,0 +1,323 @@
+/* =========================================================
+   ADD ROOM PAGE - WANDERA SERVICE PROVIDER
+========================================================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.room-page-content {
+    margin-left: 250px;
+    width: calc(100% - 250px);
+    min-height: 100vh;
+    padding: 28px 45px 60px;
+    background: radial-gradient(circle at 90% 10%, rgba(0, 217, 255, 0.06), transparent 23%), #f4f7fb;
+    font-family: "Poppins", sans-serif;
+}
+
+.room-page-header {
+    max-width: 900px;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.room-page-header h2 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #17243a;
+    margin-bottom: 4px;
+}
+
+.room-page-header p {
+    font-size: 11px;
+    color: #7890ad;
+}
+
+.room-page-header p span {
+    padding: 0 7px;
+    color: #a5b4c7;
+}
+
+.room-form-card {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 30px 36px;
+    background: #ffffff;
+    border: 1px solid #e3eaf2;
+    border-radius: 18px;
+    box-shadow: 0 12px 35px rgba(31, 55, 82, 0.09);
+}
+
+.room-form-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.room-icon {
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #eaf4ff;
+    color: #087ee8;
+    font-size: 23px;
+}
+
+.room-form-header h1 {
+    color: #17243a;
+    font-size: 21px;
+    font-weight: 600;
+    margin-bottom: 3px;
+}
+
+.room-form-header p {
+    color: #8194ad;
+    font-size: 11px;
+}
+
+.room-divider {
+    width: 100%;
+    height: 1px;
+    background: #dfe7f0;
+    margin: 22px 0;
+}
+
+.room-section {
+    padding: 22px 0;
+    border-bottom: 1px solid #edf1f5;
+}
+
+.room-section:last-of-type {
+    border-bottom: none;
+}
+
+.room-section h3 {
+    color: #17243a;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 3px;
+}
+
+.room-form-group {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 16px;
+}
+
+.room-form-group label {
+    color: #24364e;
+    font-size: 10.5px;
+    font-weight: 600;
+}
+
+.room-form-group label span {
+    color: #0789e8;
+    margin-left: 3px;
+}
+
+.room-form-group input,
+.room-form-group select,
+.room-form-group textarea {
+    width: 100%;
+    border: 1px solid #d7e1ec;
+    border-radius: 8px;
+    outline: none;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    font-family: "Poppins", sans-serif;
+    font-size: 10.5px;
+    transition: 0.25s ease;
+}
+
+.room-form-group select option {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+}
+
+.room-form-group input,
+.room-form-group select {
+    height: 42px;
+    padding: 0 12px;
+}
+
+.room-form-group textarea {
+    padding: 10px 12px;
+    resize: vertical;
+    min-height: 75px;
+}
+
+.room-form-group input:focus,
+.room-form-group select:focus,
+.room-form-group textarea:focus {
+    border-color: #149fe8;
+    box-shadow: 0 0 0 3px rgba(20, 159, 232, 0.08);
+}
+
+.room-two-column {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.room-two-column .room-form-group {
+    grid-template-columns: 125px 1fr;
+    gap: 12px;
+}
+
+.no-hotel-warning {
+    background: #fff8e6;
+    border: 1px solid #ffe0b2;
+    padding: 12px 16px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.no-hotel-warning p {
+    color: #b7791f;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.add-hotel-redirect {
+    background: #e65100;
+    color: white;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.room-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 25px;
+}
+
+.save-room-button {
+    height: 43px;
+    min-width: 145px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #0bb2e8, #2854c7);
+    color: #ffffff;
+    font-family: "Poppins", sans-serif;
+    font-size: 10.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.25s ease;
+}
+
+.save-room-button:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(26, 116, 211, 0.20);
+}
+
+.save-room-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+    .room-page-content {
+        margin-left: 0;
+        width: 100%;
+        padding: 25px;
+    }
+}
+
+@media (max-width: 650px) {
+    .room-page-content {
+        padding: 20px 15px 40px;
+    }
+    .room-form-card {
+        padding: 24px 20px;
+        border-radius: 14px;
+    }
+    .room-form-group {
+        grid-template-columns: 1fr;
+        gap: 6px;
+    }
+    .room-two-column {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+}
+
+/* ================= IMAGE PREVIEW GRID ================= */
+
+.image-preview-wrapper {
+    margin-top: 14px;
+}
+
+.preview-heading {
+    font-size: 10px;
+    font-weight: 600;
+    color: #0789e8;
+    margin-bottom: 8px;
+}
+
+.image-preview-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.preview-thumb-card {
+    position: relative;
+    width: 80px;
+    height: 70px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.preview-thumb-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.btn-remove-thumb {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: rgba(15, 23, 42, 0.8);
+    color: #ffffff;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 13px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.btn-remove-thumb:hover {
+    background: #ef4444;
+}
+
