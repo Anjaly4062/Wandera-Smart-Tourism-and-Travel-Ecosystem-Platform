@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import api from "../services/api";
 import Navbar from "../Components/Navbar";
+import DestinationMapView, { calculateHaversineDistance } from "../Components/DestinationMapView";
 import "../styles/DestinationDetails.css";
 
 export default function DestinationDetails() {
@@ -24,7 +25,6 @@ export default function DestinationDetails() {
     const [loading, setLoading] = useState(true);
     const [addingProviderId, setAddingProviderId] = useState(null);
     const [notification, setNotification] = useState(null);
-
 
     useEffect(() => {
 
@@ -378,6 +378,17 @@ export default function DestinationDetails() {
 
 
             {/* ==================================
+                DESTINATION MAP & NEARBY LOCATION
+            ================================== */}
+            <section className="destination-map-section" style={{ maxWidth: "1150px", margin: "0 auto", padding: "0 30px" }}>
+                <DestinationMapView
+                    destination={destination}
+                    services={services}
+                />
+            </section>
+
+
+            {/* ==================================
                 NEARBY SERVICES
             ================================== */}
 
@@ -501,6 +512,12 @@ export default function DestinationDetails() {
                                                 service.address ||
                                                 "Location not available"}
                                         </p>
+
+                                        {destination?.latitude && destination?.longitude && service.latitude && service.longitude && (
+                                            <p style={{ margin: "2px 0 6px 0", fontSize: "12px", color: "#059669", fontWeight: "600" }}>
+                                                📏 {calculateHaversineDistance(destination.latitude, destination.longitude, service.latitude, service.longitude)} from {destination.name}
+                                            </p>
+                                        )}
 
                                         {service.description && (
                                             <p className="service-description">

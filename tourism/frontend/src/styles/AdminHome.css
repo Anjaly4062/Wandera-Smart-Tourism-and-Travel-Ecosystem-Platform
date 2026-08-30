@@ -261,6 +261,7 @@
     border-radius: 12px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
     transition: 0.25s ease;
+    cursor: pointer;
 }
 
 .stat-card:hover {

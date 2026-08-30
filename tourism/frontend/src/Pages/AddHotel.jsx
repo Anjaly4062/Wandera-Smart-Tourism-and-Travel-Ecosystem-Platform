@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import ServiceProviderNavbar from "../Components/ServiceProviderNavbar";
+import MapPicker from "../Components/MapPicker";
 import "../styles/AddHotel.css";
 import api from "../services/api";
 
@@ -22,6 +23,8 @@ export default function AddHotel() {
         email: "",
         check_in_time: "",
         check_out_time: "",
+        latitude: "",
+        longitude: "",
     });
     const [hotelImages, setHotelImages] = useState([]);
 
@@ -101,6 +104,13 @@ const handleSubmit = async (e) => {
             "location",
             hotelData.location
         );
+
+        if (hotelData.latitude !== null && hotelData.latitude !== undefined && hotelData.latitude !== "") {
+            formData.append("latitude", hotelData.latitude);
+        }
+        if (hotelData.longitude !== null && hotelData.longitude !== undefined && hotelData.longitude !== "") {
+            formData.append("longitude", hotelData.longitude);
+        }
 
         formData.append(
             "contact_number",
@@ -427,6 +437,24 @@ const handleSubmit = async (e) => {
                                 required
                             />
 
+                        </div>
+
+                        <div className="hotel-form-group">
+                            <label>
+                                Pin Location on Map <span style={{ color: "#64748b", fontWeight: "normal", fontSize: "12px" }}>(Optional)</span>
+                            </label>
+                            <MapPicker
+                                latitude={hotelData.latitude}
+                                longitude={hotelData.longitude}
+                                onLocationSelect={({ latitude, longitude }) => {
+                                    setHotelData((prev) => ({
+                                        ...prev,
+                                        latitude: latitude !== null ? latitude : "",
+                                        longitude: longitude !== null ? longitude : "",
+                                    }));
+                                }}
+                                height="260px"
+                            />
                         </div>
 
                     </div>

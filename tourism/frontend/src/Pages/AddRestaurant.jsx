@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ServiceProviderNavbar from "../Components/ServiceProviderNavbar";
+import MapPicker from "../Components/MapPicker";
 import "../styles/AddRestaurant.css";
 import api from "../services/api";
 
@@ -18,6 +19,8 @@ export default function AddRestaurant() {
         cuisine_type: "",
         opening_time: "09:00",
         closing_time: "22:00",
+        latitude: "",
+        longitude: "",
     });
 
     const [restaurantImages, setRestaurantImages] = useState([]);
@@ -76,6 +79,12 @@ export default function AddRestaurant() {
             formData.append("cuisine_type", restaurantData.cuisine_type);
             formData.append("opening_time", restaurantData.opening_time);
             formData.append("closing_time", restaurantData.closing_time);
+            if (restaurantData.latitude !== null && restaurantData.latitude !== undefined && restaurantData.latitude !== "") {
+                formData.append("latitude", restaurantData.latitude);
+            }
+            if (restaurantData.longitude !== null && restaurantData.longitude !== undefined && restaurantData.longitude !== "") {
+                formData.append("longitude", restaurantData.longitude);
+            }
             formData.append("facilities", JSON.stringify(facilities));
 
             restaurantImages.forEach((image) => {
@@ -190,6 +199,24 @@ export default function AddRestaurant() {
                                 onChange={handleChange}
                                 placeholder="Landmark or Google Maps location"
                                 required
+                            />
+                        </div>
+
+                        <div className="restaurant-form-group">
+                            <label>
+                                Pin Location on Map <span style={{ color: "#64748b", fontWeight: "normal", fontSize: "12px" }}>(Optional)</span>
+                            </label>
+                            <MapPicker
+                                latitude={restaurantData.latitude}
+                                longitude={restaurantData.longitude}
+                                onLocationSelect={({ latitude, longitude }) => {
+                                    setRestaurantData((prev) => ({
+                                        ...prev,
+                                        latitude: latitude !== null ? latitude : "",
+                                        longitude: longitude !== null ? longitude : "",
+                                    }));
+                                }}
+                                height="260px"
                             />
                         </div>
 

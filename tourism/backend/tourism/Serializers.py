@@ -26,7 +26,9 @@ from .models import (
     TripCart,
     TripCartItem,
     Booking,
-    BookingItem
+    BookingItem,
+    HiddenSpot,
+    HiddenSpotImage
 )
 
 class RestaurantImageSerializer(serializers.ModelSerializer):
@@ -42,6 +44,8 @@ class RestaurantFacilitySerializer(serializers.ModelSerializer):
 class RestaurantSerializer(serializers.ModelSerializer):
     images = RestaurantImageSerializer(many=True, read_only=True)
     facilities = RestaurantFacilitySerializer(many=True, read_only=True)
+    latitude = serializers.ReadOnlyField(source="provider.latitude")
+    longitude = serializers.ReadOnlyField(source="provider.longitude")
 
     class Meta:
         model = Restaurant
@@ -67,6 +71,8 @@ class TransportationImageSerializer(serializers.ModelSerializer):
 class TransportationSerializer(serializers.ModelSerializer):
     images = TransportationImageSerializer(many=True, read_only=True)
     vehicles = VehicleSerializer(many=True, read_only=True)
+    latitude = serializers.ReadOnlyField(source="provider.latitude")
+    longitude = serializers.ReadOnlyField(source="provider.longitude")
 
     class Meta:
         model = Transportation
@@ -92,6 +98,8 @@ class ActivityImageSerializer(serializers.ModelSerializer):
 class ActivitySerializer(serializers.ModelSerializer):
     images = ActivityImageSerializer(many=True, read_only=True)
     items = ActivityItemSerializer(many=True, read_only=True)
+    latitude = serializers.ReadOnlyField(source="provider.latitude")
+    longitude = serializers.ReadOnlyField(source="provider.longitude")
 
     class Meta:
         model = Activity
@@ -211,6 +219,9 @@ class HotelSerializer(serializers.ModelSerializer):
         read_only=True
     )
 
+    latitude = serializers.ReadOnlyField(source="provider.latitude")
+    longitude = serializers.ReadOnlyField(source="provider.longitude")
+
     class Meta:
         model = Hotel
 
@@ -226,6 +237,8 @@ class HotelSerializer(serializers.ModelSerializer):
             "email",
             "check_in_time",
             "check_out_time",
+            "latitude",
+            "longitude",
             "images",
             "facilities",
             "rooms",
@@ -263,6 +276,8 @@ class DestinationSerializer(serializers.ModelSerializer):
             "description",
             "location",
             "area",
+            "latitude",
+            "longitude",
             "image",
             "status"
         ]
@@ -298,6 +313,8 @@ class ServiceProviderSerializer(serializers.ModelSerializer):
             "location",
             "area",
             "description",
+            "latitude",
+            "longitude",
             "created_at",
             "hotel",
             "restaurant",
@@ -382,8 +399,53 @@ class BookingSerializer(serializers.ModelSerializer):
             "end_date",
             "total_amount",
             "booking_status",
+            "payment_method",
             "payment_status",
+            "razorpay_order_id",
+            "razorpay_payment_id",
             "items",
             "created_at",
             "updated_at"
         ]
+
+
+class HiddenSpotImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HiddenSpotImage
+        fields = ["image_id", "image", "created_at"]
+
+
+class HiddenSpotSerializer(serializers.ModelSerializer):
+    images = HiddenSpotImageSerializer(many=True, read_only=True)
+    tourist_name = serializers.CharField(source="user.full_name", read_only=True)
+    tourist_email = serializers.CharField(source="user.email", read_only=True)
+    tourist_phone = serializers.SerializerMethodField()
+
+    class Meta:
+        model = HiddenSpot
+        fields = [
+            "spot_id",
+            "user",
+            "tourist_name",
+            "tourist_email",
+            "tourist_phone",
+            "name",
+            "spot_type",
+            "description",
+            "location",
+            "latitude",
+            "longitude",
+            "image",
+            "images",
+            "status",
+            "created_at",
+            "updated_at"
+        ]
+
+    def get_tourist_phone(self, obj):
+        try:
+            if hasattr(obj.user, "tourist_profile") and obj.user.tourist_profile:
+                return obj.user.tourist_profile.phone or ""
+        except Exception:
+            pass
+        return ""

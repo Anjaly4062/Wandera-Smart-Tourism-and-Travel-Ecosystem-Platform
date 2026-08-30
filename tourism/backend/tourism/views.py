@@ -8,13 +8,16 @@ from rest_framework import status
 from django.contrib.auth.hashers import make_password, check_password
 import json
 from django.utils import timezone
+from django.conf import settings
+import razorpay
 from .models import (
     Hotel, HotelFacility, HotelImage, Room, RoomImage, TouristProfile, User,
     ServiceProviderRequest, ServiceProvider, Destination,
     Restaurant, RestaurantImage, RestaurantFacility,
     Transportation, TransportationImage, Vehicle, VehicleImage,
     Activity, ActivityImage, ActivityItem, ActivityItemImage,
-    TripCart, TripCartItem, Booking, BookingItem
+    TripCart, TripCartItem, Booking, BookingItem,
+    HiddenSpot, HiddenSpotImage
 )
 from .Serializers import (
     ServiceProviderSerializer, TouristProfileSerializer, UserSerializer,
@@ -23,7 +26,8 @@ from .Serializers import (
     RestaurantSerializer, RestaurantImageSerializer, RestaurantFacilitySerializer,
     TransportationSerializer, TransportationImageSerializer, VehicleSerializer, VehicleImageSerializer,
     ActivitySerializer, ActivityImageSerializer, ActivityItemSerializer, ActivityItemImageSerializer,
-    TripCartSerializer, TripCartItemSerializer, BookingSerializer, BookingItemSerializer
+    TripCartSerializer, TripCartItemSerializer, BookingSerializer, BookingItemSerializer,
+    HiddenSpotSerializer, HiddenSpotImageSerializer
 )
 
 @api_view(['POST'])
@@ -264,8 +268,14 @@ def reject_provider_request(request, request_id):
 def add_destination(request):
 
     data = request.data.copy()
-    if not data.get("area") and data.get("location"):
-        data["area"] = data.get("location")
+    if not data.get("location"):
+        data["location"] = data.get("district", "") or data.get("name", "")
+    if not data.get("area"):
+        data["area"] = data.get("location", "")
+    if data.get("latitude") == "":
+        data["latitude"] = None
+    if data.get("longitude") == "":
+        data["longitude"] = None
 
     serializer = DestinationSerializer(data=data)
 
@@ -425,13 +435,19 @@ def add_hotel(request):
             loc = request.data.get("location")
             dist = request.data.get("district")
             area = request.data.get("area") or loc
-            if loc or area or dist:
+            lat = request.data.get("latitude")
+            lng = request.data.get("longitude")
+            if loc or area or dist or lat or lng:
                 if loc:
                     provider.location = loc
                 if dist:
                     provider.district = dist
                 if area:
                     provider.area = area
+                if lat is not None and str(lat).strip() != "":
+                    provider.latitude = lat
+                if lng is not None and str(lng).strip() != "":
+                    provider.longitude = lng
                 provider.save()
 
             print(
@@ -917,6 +933,15 @@ def edit_hotel(request, hotel_id):
         hotel.check_out_time = request.data.get("check_out_time", hotel.check_out_time)
         hotel.save()
 
+        lat = request.data.get("latitude")
+        lng = request.data.get("longitude")
+        if (lat is not None and str(lat).strip() != "") or (lng is not None and str(lng).strip() != ""):
+            if lat is not None and str(lat).strip() != "":
+                hotel.provider.latitude = lat
+            if lng is not None and str(lng).strip() != "":
+                hotel.provider.longitude = lng
+            hotel.provider.save()
+
         facilities_data = request.data.get("facilities")
         if facilities_data is not None:
             try:
@@ -1049,13 +1074,19 @@ def add_restaurant(request):
         r_loc = request.data.get("location")
         r_dist = request.data.get("district")
         r_area = request.data.get("area") or r_loc
-        if r_loc or r_area or r_dist:
+        r_lat = request.data.get("latitude")
+        r_lng = request.data.get("longitude")
+        if r_loc or r_area or r_dist or r_lat or r_lng:
             if r_loc:
                 provider.location = r_loc
             if r_dist:
                 provider.district = r_dist
             if r_area:
                 provider.area = r_area
+            if r_lat is not None and str(r_lat).strip() != "":
+                provider.latitude = r_lat
+            if r_lng is not None and str(r_lng).strip() != "":
+                provider.longitude = r_lng
             provider.save()
 
         restaurant_images = request.FILES.getlist("restaurant_images")
@@ -1096,6 +1127,15 @@ def edit_restaurant(request, restaurant_id):
         restaurant.opening_time = request.data.get("opening_time", restaurant.opening_time)
         restaurant.closing_time = request.data.get("closing_time", restaurant.closing_time)
         restaurant.save()
+
+        r_lat = request.data.get("latitude")
+        r_lng = request.data.get("longitude")
+        if (r_lat is not None and str(r_lat).strip() != "") or (r_lng is not None and str(r_lng).strip() != ""):
+            if r_lat is not None and str(r_lat).strip() != "":
+                restaurant.provider.latitude = r_lat
+            if r_lng is not None and str(r_lng).strip() != "":
+                restaurant.provider.longitude = r_lng
+            restaurant.provider.save()
 
         facilities_data = request.data.get("facilities")
         if facilities_data is not None:
@@ -1150,13 +1190,19 @@ def add_transportation(request):
         t_loc = request.data.get("starting_location") or request.data.get("service_area") or request.data.get("location")
         t_dist = request.data.get("district")
         t_area = request.data.get("area") or request.data.get("service_area") or t_loc
-        if t_loc or t_area or t_dist:
+        t_lat = request.data.get("latitude")
+        t_lng = request.data.get("longitude")
+        if t_loc or t_area or t_dist or t_lat or t_lng:
             if t_loc:
                 provider.location = t_loc
             if t_dist:
                 provider.district = t_dist
             if t_area:
                 provider.area = t_area
+            if t_lat is not None and str(t_lat).strip() != "":
+                provider.latitude = t_lat
+            if t_lng is not None and str(t_lng).strip() != "":
+                provider.longitude = t_lng
             provider.save()
 
         transportation_images = request.FILES.getlist("transportation_images")
@@ -1187,6 +1233,15 @@ def edit_transportation(request, transportation_id):
         transportation.price_fare = request.data.get("price_fare", transportation.price_fare)
         transportation.availability_status = request.data.get("availability_status", transportation.availability_status)
         transportation.save()
+
+        t_lat = request.data.get("latitude")
+        t_lng = request.data.get("longitude")
+        if (t_lat is not None and str(t_lat).strip() != "") or (t_lng is not None and str(t_lng).strip() != ""):
+            if t_lat is not None and str(t_lat).strip() != "":
+                transportation.provider.latitude = t_lat
+            if t_lng is not None and str(t_lng).strip() != "":
+                transportation.provider.longitude = t_lng
+            transportation.provider.save()
 
         new_images = request.FILES.getlist("transportation_images")
         for img in new_images:
@@ -1232,13 +1287,19 @@ def add_activity(request):
         a_loc = request.data.get("location")
         a_dist = request.data.get("district")
         a_area = request.data.get("area") or a_loc
-        if a_loc or a_area or a_dist:
+        a_lat = request.data.get("latitude")
+        a_lng = request.data.get("longitude")
+        if a_loc or a_area or a_dist or a_lat or a_lng:
             if a_loc:
                 provider.location = a_loc
             if a_dist:
                 provider.district = a_dist
             if a_area:
                 provider.area = a_area
+            if a_lat is not None and str(a_lat).strip() != "":
+                provider.latitude = a_lat
+            if a_lng is not None and str(a_lng).strip() != "":
+                provider.longitude = a_lng
             provider.save()
 
         activity_images = request.FILES.getlist("activity_images")
@@ -1271,6 +1332,15 @@ def edit_activity(request, activity_id):
         activity.capacity = request.data.get("capacity", activity.capacity)
         activity.instructions = request.data.get("instructions", activity.instructions)
         activity.save()
+
+        a_lat = request.data.get("latitude")
+        a_lng = request.data.get("longitude")
+        if (a_lat is not None and str(a_lat).strip() != "") or (a_lng is not None and str(a_lng).strip() != ""):
+            if a_lat is not None and str(a_lat).strip() != "":
+                activity.provider.latitude = a_lat
+            if a_lng is not None and str(a_lng).strip() != "":
+                activity.provider.longitude = a_lng
+            activity.provider.save()
 
         new_images = request.FILES.getlist("activity_images")
         for img in new_images:
@@ -1600,12 +1670,16 @@ def admin_stats(request):
         providers_count = ServiceProvider.objects.count()
         destinations_count = Destination.objects.count()
         pending_requests_count = ServiceProviderRequest.objects.filter(approval_status="Pending").count()
+        bookings_count = Booking.objects.count()
+        pending_hidden_spots_count = HiddenSpot.objects.filter(status="Pending").count()
 
         return Response({
             "tourists_count": tourists_count,
             "providers_count": providers_count,
             "destinations_count": destinations_count,
-            "pending_requests_count": pending_requests_count
+            "pending_requests_count": pending_requests_count,
+            "bookings_count": bookings_count,
+            "pending_hidden_spots_count": pending_hidden_spots_count
         }, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -1929,6 +2003,8 @@ def create_booking(request):
                 try:
                     d_in = datetime.strptime(str(check_in).strip(), "%Y-%m-%d").date()
                     d_out = datetime.strptime(str(check_out).strip(), "%Y-%m-%d").date()
+                    if d_in < timezone.localdate():
+                        return Response({"error": f"Check-in date cannot be in the past for {hotel.hotel_name}. Please select today or a future date."}, status=status.HTTP_400_BAD_REQUEST)
                     nights = (d_out - d_in).days
                     if nights <= 0:
                         return Response({"error": f"Check-out date must be after Check-in date for {hotel.hotel_name}."}, status=status.HTTP_400_BAD_REQUEST)
@@ -1966,11 +2042,14 @@ def create_booking(request):
                 passengers_count = int(item_info.get("passengers_count") or details.get("passengers_count") or 1)
 
                 days = 1
-                if journey_date and return_date:
+                if journey_date:
                     try:
                         d_start = datetime.strptime(str(journey_date).strip(), "%Y-%m-%d").date()
-                        d_end = datetime.strptime(str(return_date).strip(), "%Y-%m-%d").date()
-                        days = max(1, (d_end - d_start).days)
+                        if d_start < timezone.localdate():
+                            return Response({"error": f"Journey date cannot be in the past for {transportation.service_name}. Please select today or a future date."}, status=status.HTTP_400_BAD_REQUEST)
+                        if return_date:
+                            d_end = datetime.strptime(str(return_date).strip(), "%Y-%m-%d").date()
+                            days = max(1, (d_end - d_start).days)
                     except ValueError:
                         days = 1
 
@@ -2004,6 +2083,14 @@ def create_booking(request):
                 time_slot = item_info.get("time_slot") or details.get("time_slot", "")
                 participants_count = int(item_info.get("participants_count") or details.get("participants_count") or 1)
 
+                if activity_date:
+                    try:
+                        d_act = datetime.strptime(str(activity_date).strip(), "%Y-%m-%d").date()
+                        if d_act < timezone.localdate():
+                            return Response({"error": f"Activity date cannot be in the past for {activity.activity_name}. Please select today or a future date."}, status=status.HTTP_400_BAD_REQUEST)
+                    except ValueError:
+                        pass
+
                 if activity_item_id:
                     try:
                         act_item = ActivityItem.objects.get(item_id=activity_item_id, activity=activity)
@@ -2030,6 +2117,14 @@ def create_booking(request):
                 reservation_time = item_info.get("reservation_time") or details.get("reservation_time")
                 guests_count = int(item_info.get("guests_count") or details.get("guests_count") or 2)
                 item_amount = float(item_info.get("amount", 0))
+
+                if reservation_date:
+                    try:
+                        d_res = datetime.strptime(str(reservation_date).strip(), "%Y-%m-%d").date()
+                        if d_res < timezone.localdate():
+                            return Response({"error": f"Reservation date cannot be in the past for {restaurant.restaurant_name}. Please select today or a future date."}, status=status.HTTP_400_BAD_REQUEST)
+                    except ValueError:
+                        pass
 
                 details["reservation_date"] = str(reservation_date) if reservation_date else ""
                 details["reservation_time"] = str(reservation_time) if reservation_time else ""
@@ -2195,6 +2290,7 @@ def get_provider_bookings(request, provider_id):
                     "name": booking.destination.name if booking and booking.destination else "Kerala"
                 } if booking and booking.destination else None,
                 "booking_overall_status": booking.booking_status if booking else "Confirmed",
+                "payment_method": booking.payment_method if booking else "Offline",
                 "payment_status": booking.payment_status if booking else "Pending"
             })
 
@@ -2239,6 +2335,566 @@ def update_booking_item_status(request, booking_item_id):
 
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# =========================================================================
+# RAZORPAY PAYMENT INTEGRATION VIEWS
+# =========================================================================
+
+@api_view(["POST"])
+def create_razorpay_order(request):
+    """
+    Creates ONE Razorpay Order associated with an existing Booking ID.
+    Authoritative amount is calculated server-side from booking.total_amount.
+    """
+    try:
+        booking_id = request.data.get("booking_id")
+        if not booking_id:
+            return Response({"error": "Booking ID is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            booking = Booking.objects.select_related("user", "destination").get(booking_id=booking_id)
+        except Booking.DoesNotExist:
+            return Response({"error": f"Booking #{booking_id} not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        if float(booking.total_amount) <= 0:
+            return Response({"error": "Booking total amount must be greater than zero for online payment."}, status=status.HTTP_400_BAD_REQUEST)
+
+        key_id = getattr(settings, "RAZORPAY_KEY_ID", None)
+        key_secret = getattr(settings, "RAZORPAY_KEY_SECRET", None)
+
+        if not key_id or not key_secret:
+            return Response({"error": "Razorpay credentials are not configured on the server."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        amount_in_paise = int(round(float(booking.total_amount) * 100))
+
+        client = razorpay.Client(auth=(key_id, key_secret))
+        order_data = {
+            "amount": amount_in_paise,
+            "currency": "INR",
+            "receipt": f"booking_{booking.booking_id}",
+            "payment_capture": 1,
+            "notes": {
+                "booking_id": str(booking.booking_id),
+                "user_id": str(booking.user_id),
+                "destination": booking.destination.name if booking.destination else "Kerala"
+            }
+        }
+
+        razorpay_order = client.order.create(data=order_data)
+
+        # Save order ID against existing booking
+        booking.razorpay_order_id = razorpay_order["id"]
+        booking.payment_method = "Online"
+        booking.save()
+
+        # Customer details for checkout prefill
+        phone = ""
+        if hasattr(booking.user, "tourist_profile") and booking.user.tourist_profile:
+            phone = booking.user.tourist_profile.phone or ""
+
+        return Response({
+            "order_id": razorpay_order["id"],
+            "amount": razorpay_order["amount"],
+            "currency": "INR",
+            "key_id": key_id,
+            "booking_id": booking.booking_id,
+            "customer": {
+                "name": booking.user.full_name,
+                "email": booking.user.email,
+                "phone": phone
+            }
+        }, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        print("ERROR IN CREATE RAZORPAY ORDER:", str(e))
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(["POST"])
+def verify_razorpay_payment(request):
+    """
+    Verifies Razorpay HMAC signature on the server before updating booking status.
+    Ensures razorpay_order_id matches the one stored in database for this booking.
+    """
+    try:
+        booking_id = request.data.get("booking_id")
+        razorpay_payment_id = request.data.get("razorpay_payment_id")
+        razorpay_order_id = request.data.get("razorpay_order_id")
+        razorpay_signature = request.data.get("razorpay_signature")
+
+        if not all([booking_id, razorpay_payment_id, razorpay_order_id, razorpay_signature]):
+            return Response({
+                "error": "Incomplete payment verification payload. Required: booking_id, razorpay_payment_id, razorpay_order_id, razorpay_signature."
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            booking = Booking.objects.prefetch_related("items__provider", "destination").get(booking_id=booking_id)
+        except Booking.DoesNotExist:
+            return Response({"error": f"Booking #{booking_id} not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Security check: verify order_id matches what was generated for this booking
+        if booking.razorpay_order_id and booking.razorpay_order_id != razorpay_order_id:
+            return Response({
+                "error": "Order ID mismatch. The provided payment does not correspond to this booking."
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        key_id = getattr(settings, "RAZORPAY_KEY_ID", None)
+        key_secret = getattr(settings, "RAZORPAY_KEY_SECRET", None)
+
+        client = razorpay.Client(auth=(key_id, key_secret))
+        params_dict = {
+            'razorpay_order_id': razorpay_order_id,
+            'razorpay_payment_id': razorpay_payment_id,
+            'razorpay_signature': razorpay_signature
+        }
+
+        try:
+            client.utility.verify_payment_signature(params_dict)
+        except razorpay.errors.SignatureVerificationError:
+            booking.payment_status = "Failed"
+            booking.save()
+            return Response({
+                "error": "Payment signature verification failed. Transaction cannot be authenticated."
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Payment verified successfully
+        booking.payment_method = "Online"
+        booking.payment_status = "Completed"
+        booking.booking_status = "Confirmed"
+        booking.razorpay_payment_id = razorpay_payment_id
+        booking.razorpay_signature = razorpay_signature
+        booking.save()
+
+        # Update all items status to Confirmed
+        booking.items.all().update(status="Confirmed")
+
+        return Response({
+            "status": "success",
+            "message": "Payment verified successfully! Your booking is confirmed.",
+            "booking": BookingSerializer(booking).data
+        }, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        print("ERROR IN VERIFY RAZORPAY PAYMENT:", str(e))
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(["POST"])
+def confirm_offline_payment(request):
+    """
+    Confirms offline payment selection for an existing booking.
+    Sets payment_method to Offline and payment_status to Pending.
+    """
+    try:
+        booking_id = request.data.get("booking_id")
+        if not booking_id:
+            return Response({"error": "Booking ID is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            booking = Booking.objects.prefetch_related("items__provider", "destination").get(booking_id=booking_id)
+        except Booking.DoesNotExist:
+            return Response({"error": f"Booking #{booking_id} not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        booking.payment_method = "Offline"
+        booking.payment_status = "Pending"
+        booking.booking_status = "Confirmed"
+        booking.save()
+
+        return Response({
+            "status": "success",
+            "message": "Offline booking confirmed. Payment status is Pending.",
+            "booking": BookingSerializer(booking).data
+        }, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        print("ERROR IN CONFIRM OFFLINE PAYMENT:", str(e))
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(["POST"])
+def razorpay_webhook(request):
+    """
+    Asynchronous Razorpay webhook listener for server-side verification and updates.
+    Handles payment.captured, payment.failed, order.paid idempotently.
+    """
+    webhook_secret = getattr(settings, "RAZORPAY_WEBHOOK_SECRET", "")
+    webhook_signature = request.headers.get("X-Razorpay-Signature", "")
+
+    if webhook_secret and webhook_signature:
+        client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+        try:
+            client.utility.verify_webhook_signature(
+                request.body.decode("utf-8"),
+                webhook_signature,
+                webhook_secret
+            )
+        except razorpay.errors.SignatureVerificationError:
+            return Response({"error": "Invalid webhook signature."}, status=status.HTTP_400_BAD_REQUEST)
+
+    event = request.data
+    event_type = event.get("event")
+    payload = event.get("payload", {})
+
+    try:
+        if event_type in ["payment.captured", "order.paid"]:
+            payment_entity = payload.get("payment", {}).get("entity", {})
+            order_id = payment_entity.get("order_id")
+            payment_id = payment_entity.get("id")
+
+            if order_id:
+                booking = Booking.objects.filter(razorpay_order_id=order_id).first()
+                if booking:
+                    booking.payment_method = "Online"
+                    booking.payment_status = "Completed"
+                    booking.booking_status = "Confirmed"
+                    if payment_id:
+                        booking.razorpay_payment_id = payment_id
+                    booking.save()
+                    booking.items.all().update(status="Confirmed")
+
+        elif event_type == "payment.failed":
+            payment_entity = payload.get("payment", {}).get("entity", {})
+            order_id = payment_entity.get("order_id")
+
+            if order_id:
+                booking = Booking.objects.filter(razorpay_order_id=order_id).first()
+                if booking and booking.payment_status != "Completed":
+                    booking.payment_status = "Failed"
+                    booking.save()
+
+        return Response({"status": "ok"}, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        print("ERROR IN WEBHOOK PROCESSING:", str(e))
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# =========================================================================
+# ADMIN MANAGEMENT VIEWS (TOURISTS, SERVICE PROVIDERS, DESTINATION EDIT/DELETE)
+# =========================================================================
+
+@api_view(["GET"])
+def get_all_tourists(request):
+    try:
+        tourists = User.objects.filter(role="tourist").order_by("-created_at")
+        data = []
+        for tourist in tourists:
+            profile = getattr(tourist, "tourist_profile", None)
+            data.append({
+                "user_id": tourist.user_id,
+                "full_name": tourist.full_name,
+                "email": tourist.email,
+                "phone": profile.phone if (profile and profile.phone) else "",
+                "status": tourist.status,
+            })
+        return Response(data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(["GET"])
+def get_all_service_providers(request):
+    try:
+        providers = ServiceProvider.objects.select_related("user", "destination").all().order_by("-provider_id")
+        data = []
+        for p in providers:
+            data.append({
+                "provider_id": p.provider_id,
+                "user_id": p.user.user_id if p.user else None,
+                "full_name": p.user.full_name if p.user else "",
+                "email": p.email or (p.user.email if p.user else ""),
+                "phone": p.phone or "",
+                "business_name": p.business_name,
+                "service_type": p.service_type,
+                "license_number": p.license_number,
+                "destination_name": p.destination.name if p.destination else "None",
+                "district": p.district or "",
+                "location": p.location or "",
+                "status": p.user.status if p.user else "active",
+            })
+        return Response(data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(["GET"])
+def get_all_bookings(request):
+    """
+    Returns all bookings for Admin Bookings Management page.
+    Includes tourist details, items with service type, provider business name, destination, dates, amount, status.
+    """
+    try:
+        bookings = Booking.objects.select_related("user", "destination").prefetch_related(
+            "items__provider"
+        ).order_by("-booking_id")
+
+        data = []
+        for b in bookings:
+            user = b.user
+            phone = ""
+            if user:
+                try:
+                    if hasattr(user, 'tourist_profile') and user.tourist_profile:
+                        phone = user.tourist_profile.phone or ""
+                except Exception:
+                    phone = ""
+
+            items_summary = []
+            services_list = []
+            providers_list = []
+            for item in b.items.all():
+                p_name = item.provider.business_name if item.provider else (item.item_name or "Provider")
+                if item.service_type and item.service_type not in services_list:
+                    services_list.append(item.service_type)
+                if p_name and p_name not in providers_list:
+                    providers_list.append(p_name)
+
+                items_summary.append({
+                    "booking_item_id": item.booking_item_id,
+                    "service_type": item.service_type,
+                    "item_name": item.item_name or p_name,
+                    "provider_name": p_name,
+                    "amount": float(item.amount or 0),
+                    "status": item.status,
+                    "details": item.details or {},
+                })
+
+            data.append({
+                "booking_id": b.booking_id,
+                "tourist_name": user.full_name if user else "Tourist",
+                "tourist_email": user.email if user else "",
+                "tourist_phone": phone,
+                "services": services_list,
+                "service_summary": ", ".join(services_list) if services_list else "Package",
+                "providers": providers_list,
+                "provider_summary": ", ".join(providers_list) if providers_list else "—",
+                "destination_name": b.destination.name if b.destination else "Kerala",
+                "destination_id": b.destination.destination_id if b.destination else None,
+                "start_date": b.start_date.strftime("%Y-%m-%d") if b.start_date else None,
+                "end_date": b.end_date.strftime("%Y-%m-%d") if b.end_date else None,
+                "total_amount": float(b.total_amount or 0),
+                "booking_status": b.booking_status,
+                "payment_method": b.payment_method,
+                "payment_status": b.payment_status,
+                "created_at": b.created_at.strftime("%Y-%m-%d %H:%M") if b.created_at else None,
+                "items": items_summary,
+            })
+
+        return Response(data, status=status.HTTP_200_OK)
+    except Exception as e:
+        print("ERROR IN GET ALL BOOKINGS:", str(e))
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(["PUT", "POST"])
+@parser_classes([MultiPartParser, FormParser])
+def edit_destination(request, destination_id):
+    try:
+        dest = get_object_or_404(Destination, destination_id=destination_id)
+        data = request.data
+
+        if "name" in data and data.get("name"):
+            dest.name = data.get("name")
+        if "category" in data and data.get("category"):
+            dest.category = data.get("category")
+        if "district" in data and data.get("district"):
+            dest.district = data.get("district")
+        if "location" in data and data.get("location"):
+            dest.location = data.get("location")
+            if not data.get("area"):
+                dest.area = data.get("location")
+        if "area" in data and data.get("area"):
+            dest.area = data.get("area")
+        if "description" in data and data.get("description"):
+            dest.description = data.get("description")
+        if "status" in data and data.get("status"):
+            dest.status = data.get("status")
+
+        lat = data.get("latitude")
+        lng = data.get("longitude")
+        if lat is not None and str(lat).strip() != "":
+            dest.latitude = lat
+        elif lat == "":
+            dest.latitude = None
+
+        if lng is not None and str(lng).strip() != "":
+            dest.longitude = lng
+        elif lng == "":
+            dest.longitude = None
+
+        if "image" in request.FILES:
+            dest.image = request.FILES["image"]
+
+        dest.save()
+        serializer = DestinationSerializer(dest)
+        return Response({
+            "message": "Destination updated successfully.",
+            "destination": serializer.data
+        }, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(["DELETE", "POST"])
+def delete_destination(request, destination_id):
+    try:
+        dest = get_object_or_404(Destination, destination_id=destination_id)
+        dest.delete()
+        return Response({"message": "Destination deleted successfully."}, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# =========================================================================
+# HIDDEN SPOTS VIEWS (TOURIST & ADMIN)
+# =========================================================================
+
+@api_view(["POST"])
+@parser_classes([MultiPartParser, FormParser])
+def submit_hidden_spot(request):
+    """
+    Tourist submits a hidden spot with details, exact coordinates, and multiple photos.
+    Saved with status="Pending" for Admin verification.
+    """
+    try:
+        user_id = request.data.get("user_id")
+        if not user_id:
+            return Response({"error": "User ID is required. Please login as a tourist."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            user = User.objects.get(user_id=user_id)
+        except User.DoesNotExist:
+            return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        name = request.data.get("name", "").strip()
+        spot_type = request.data.get("spot_type", "Nature Spot").strip()
+        description = request.data.get("description", "").strip()
+        location = request.data.get("location", "").strip()
+        latitude = request.data.get("latitude")
+        longitude = request.data.get("longitude")
+
+        if not name:
+            if location:
+                name = f"{spot_type} near {location}"
+            else:
+                name = f"Hidden {spot_type}"
+        if not description:
+            return Response({"error": "Description is required."}, status=status.HTTP_400_BAD_REQUEST)
+        if not location:
+            return Response({"error": "Location/Landmark is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        lat_val = None
+        if latitude and str(latitude).strip():
+            try:
+                lat_val = float(latitude)
+            except ValueError:
+                lat_val = None
+
+        lng_val = None
+        if longitude and str(longitude).strip():
+            try:
+                lng_val = float(longitude)
+            except ValueError:
+                lng_val = None
+
+        # Check for multiple or single photos
+        photos = request.FILES.getlist("photos") or request.FILES.getlist("images")
+        single_photo = request.FILES.get("image") or request.FILES.get("photo")
+
+        all_photos = list(photos)
+        if single_photo and single_photo not in all_photos:
+            all_photos.append(single_photo)
+
+        primary_photo = all_photos[0] if all_photos else None
+
+        spot = HiddenSpot.objects.create(
+            user=user,
+            name=name,
+            spot_type=spot_type,
+            description=description,
+            location=location,
+            latitude=lat_val,
+            longitude=lng_val,
+            image=primary_photo,
+            status="Pending"
+        )
+
+        # Save all multiple photos
+        for photo in all_photos:
+            try:
+                photo.seek(0)
+            except Exception:
+                pass
+            HiddenSpotImage.objects.create(
+                spot=spot,
+                image=photo
+            )
+
+        serializer = HiddenSpotSerializer(spot)
+        return Response({
+            "message": "Hidden spot submitted successfully! It is currently pending admin verification.",
+            "spot": serializer.data
+        }, status=status.HTTP_201_CREATED)
+
+    except Exception as e:
+        print("ERROR IN SUBMIT HIDDEN SPOT:", str(e))
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(["GET"])
+def get_approved_hidden_spots(request):
+    """
+    Public tourist endpoint to list only approved hidden spots.
+    """
+    try:
+        spots = HiddenSpot.objects.filter(status="Approved").select_related("user").prefetch_related("images").order_by("-created_at")
+        serializer = HiddenSpotSerializer(spots, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(["GET"])
+def get_pending_hidden_spots(request):
+    """
+    Admin endpoint to view only pending hidden spot requests awaiting verification.
+    """
+    try:
+        spots = HiddenSpot.objects.filter(status="Pending").select_related("user").prefetch_related("images").order_by("-created_at")
+        serializer = HiddenSpotSerializer(spots, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(["POST", "PUT"])
+def accept_hidden_spot(request, spot_id):
+    """
+    Admin action: Accept a pending hidden spot. Makes it publicly visible.
+    """
+    try:
+        spot = get_object_or_404(HiddenSpot, spot_id=spot_id)
+        spot.status = "Approved"
+        spot.save()
+        return Response({"message": f"'{spot.name}' has been approved and is now publicly visible to tourists."}, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(["POST", "PUT"])
+def reject_hidden_spot(request, spot_id):
+    """
+    Admin action: Reject a pending hidden spot.
+    """
+    try:
+        spot = get_object_or_404(HiddenSpot, spot_id=spot_id)
+        spot.status = "Rejected"
+        spot.save()
+        return Response({"message": f"'{spot.name}' request has been rejected."}, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
 

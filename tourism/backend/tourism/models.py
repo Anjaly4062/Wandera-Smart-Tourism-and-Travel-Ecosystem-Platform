@@ -179,6 +179,18 @@ class Destination(models.Model):
         choices=[("Active", "Active"), ("Inactive", "Inactive")],
         default="Active"
     )
+    latitude = models.DecimalField(
+        max_digits=10,
+        decimal_places=7,
+        null=True,
+        blank=True
+    )
+    longitude = models.DecimalField(
+        max_digits=10,
+        decimal_places=7,
+        null=True,
+        blank=True
+    )
 
     class Meta:
         db_table = "destination"
@@ -225,6 +237,19 @@ class ServiceProvider(models.Model):
     area = models.CharField(max_length=100, blank=True, null=True)
 
     description = models.TextField(null=True)
+
+    latitude = models.DecimalField(
+        max_digits=10,
+        decimal_places=7,
+        null=True,
+        blank=True
+    )
+    longitude = models.DecimalField(
+        max_digits=10,
+        decimal_places=7,
+        null=True,
+        blank=True
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -639,8 +664,14 @@ class Booking(models.Model):
 
     PAYMENT_STATUS_CHOICES = (
         ('Pending', 'Pending'),
-        ('Paid', 'Paid'),
+        ('Completed', 'Completed'),
         ('Failed', 'Failed'),
+        ('Refunded', 'Refunded'),
+    )
+
+    PAYMENT_METHOD_CHOICES = (
+        ('Online', 'Online'),
+        ('Offline', 'Offline'),
     )
 
     booking_id = models.AutoField(primary_key=True)
@@ -664,11 +695,19 @@ class Booking(models.Model):
         choices=BOOKING_STATUS_CHOICES,
         default='Confirmed'
     )
+    payment_method = models.CharField(
+        max_length=20,
+        choices=PAYMENT_METHOD_CHOICES,
+        default='Offline'
+    )
     payment_status = models.CharField(
         max_length=20,
         choices=PAYMENT_STATUS_CHOICES,
         default='Pending'
     )
+    razorpay_order_id = models.CharField(max_length=100, blank=True, null=True)
+    razorpay_payment_id = models.CharField(max_length=100, blank=True, null=True)
+    razorpay_signature = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -706,6 +745,68 @@ class BookingItem(models.Model):
 
     def __str__(self):
         return f"{self.service_type} ({self.item_name}) - Booking #{self.booking.booking_id}"
+
+
+class HiddenSpot(models.Model):
+    STATUS_CHOICES = (
+        ('Pending', 'Pending'),
+        ('Approved', 'Approved'),
+        ('Rejected', 'Rejected'),
+    )
+
+    TYPE_CHOICES = (
+        ('Waterfall', 'Waterfall'),
+        ('Viewpoint', 'Viewpoint'),
+        ('Temple', 'Temple'),
+        ('Beach', 'Beach'),
+        ('Nature Spot', 'Nature Spot'),
+        ('Cave', 'Cave'),
+        ('Trekking Trail', 'Trekking Trail'),
+        ('Lake', 'Lake'),
+        ('Heritage', 'Heritage'),
+        ('Other', 'Other'),
+    )
+
+    spot_id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="hidden_spots"
+    )
+    name = models.CharField(max_length=200)
+    spot_type = models.CharField(max_length=50, choices=TYPE_CHOICES, default='Nature Spot')
+    description = models.TextField()
+    location = models.CharField(max_length=255)
+    latitude = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True)
+    image = models.ImageField(upload_to="hidden_spots/", null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "hidden_spots"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.name} ({self.spot_type}) - {self.status}"
+
+
+class HiddenSpotImage(models.Model):
+    image_id = models.AutoField(primary_key=True)
+    spot = models.ForeignKey(
+        HiddenSpot,
+        on_delete=models.CASCADE,
+        related_name="images"
+    )
+    image = models.ImageField(upload_to="hidden_spots/")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "hidden_spot_images"
+
+    def __str__(self):
+        return f"Image #{self.image_id} for {self.spot.name}"
 
 
 

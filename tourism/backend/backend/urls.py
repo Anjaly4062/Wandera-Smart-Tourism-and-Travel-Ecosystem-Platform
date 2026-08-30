@@ -58,6 +58,20 @@ urlpatterns = [
     path("api/booking-details/<int:booking_id>/", views.get_booking_details, name="booking-details"),
     path("api/provider-bookings/<int:provider_id>/", views.get_provider_bookings, name="provider-bookings"),
     path("api/provider-booking-item/<int:booking_item_id>/status/", views.update_booking_item_status, name="update-booking-item-status"),
+    path("api/payment/create-order/", views.create_razorpay_order, name="payment-create-order"),
+    path("api/payment/verify/", views.verify_razorpay_payment, name="payment-verify"),
+    path("api/payment/offline-confirm/", views.confirm_offline_payment, name="payment-offline-confirm"),
+    path("api/payment/webhook/", views.razorpay_webhook, name="payment-webhook"),
+    path("api/tourists/", views.get_all_tourists, name="tourists-list"),
+    path("api/service-providers/", views.get_all_service_providers, name="service-providers-list"),
+    path("api/bookings/", views.get_all_bookings, name="admin-bookings"),
+    path("api/hidden-spots/submit/", views.submit_hidden_spot, name="submit-hidden-spot"),
+    path("api/hidden-spots/approved/", views.get_approved_hidden_spots, name="approved-hidden-spots"),
+    path("api/admin/hidden-spots/", views.get_pending_hidden_spots, name="admin-hidden-spots"),
+    path("api/admin/hidden-spot/<int:spot_id>/accept/", views.accept_hidden_spot, name="accept-hidden-spot"),
+    path("api/admin/hidden-spot/<int:spot_id>/reject/", views.reject_hidden_spot, name="reject-hidden-spot"),
+    path("api/edit-destination/<int:destination_id>/", views.edit_destination, name="edit-destination"),
+    path("api/delete-destination/<int:destination_id>/", views.delete_destination, name="delete-destination"),
 ]
 
 import os

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ServiceProviderNavbar from "../Components/ServiceProviderNavbar";
+import MapPicker from "../Components/MapPicker";
 import "../styles/AddActivity.css";
 import api from "../services/api";
 
@@ -14,6 +15,8 @@ export default function AddActivity() {
         district: "",
         contact_number: "",
         email: "",
+        latitude: "",
+        longitude: "",
     });
 
     const [activityImages, setActivityImages] = useState([]);
@@ -54,6 +57,12 @@ export default function AddActivity() {
             formData.append("district", activityData.district);
             formData.append("contact_number", activityData.contact_number);
             formData.append("email", activityData.email);
+            if (activityData.latitude !== null && activityData.latitude !== undefined && activityData.latitude !== "") {
+                formData.append("latitude", activityData.latitude);
+            }
+            if (activityData.longitude !== null && activityData.longitude !== undefined && activityData.longitude !== "") {
+                formData.append("longitude", activityData.longitude);
+            }
 
             activityImages.forEach((image) => {
                 formData.append("activity_images", image);
@@ -155,6 +164,24 @@ export default function AddActivity() {
                                     required
                                 />
                             </div>
+                        </div>
+
+                        <div className="activity-form-group">
+                            <label>
+                                Pin Activity Spot on Map <span style={{ color: "#64748b", fontWeight: "normal", fontSize: "12px" }}>(Optional)</span>
+                            </label>
+                            <MapPicker
+                                latitude={activityData.latitude}
+                                longitude={activityData.longitude}
+                                onLocationSelect={({ latitude, longitude }) => {
+                                    setActivityData((prev) => ({
+                                        ...prev,
+                                        latitude: latitude !== null ? latitude : "",
+                                        longitude: longitude !== null ? longitude : "",
+                                    }));
+                                }}
+                                height="260px"
+                            />
                         </div>
 
                         <div className="activity-form-group">

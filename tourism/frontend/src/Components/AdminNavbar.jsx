@@ -13,7 +13,6 @@ export default function AdminNavbar() {
         <aside className="admin-sidebar">
             {/* BRAND / LOGO */}
             <div className="admin-brand">
-                <div className="admin-logo-icon">W</div>
                 <div className="admin-brand-text">
                     <h2>Wandera</h2>
                     <p>ADMIN PORTAL</p>
@@ -35,12 +34,48 @@ export default function AdminNavbar() {
                 </NavLink>
 
                 <NavLink
+                    to="/admin/tourists"
+                    className={({ isActive }) =>
+                        isActive ? "admin-menu-item active" : "admin-menu-item"
+                    }
+                >
+                    <span>Tourists</span>
+                </NavLink>
+
+                <NavLink
+                    to="/admin/service-providers"
+                    className={({ isActive }) =>
+                        isActive ? "admin-menu-item active" : "admin-menu-item"
+                    }
+                >
+                    <span>Service Providers</span>
+                </NavLink>
+
+                <NavLink
                     to="/admin/provider-request"
                     className={({ isActive }) =>
                         isActive ? "admin-menu-item active" : "admin-menu-item"
                     }
                 >
                     <span>Provider Requests</span>
+                </NavLink>
+
+                <NavLink
+                    to="/admin/bookings"
+                    className={({ isActive }) =>
+                        isActive ? "admin-menu-item active" : "admin-menu-item"
+                    }
+                >
+                    <span>Bookings</span>
+                </NavLink>
+
+                <NavLink
+                    to="/admin/hidden-spots"
+                    className={({ isActive }) =>
+                        isActive ? "admin-menu-item active" : "admin-menu-item"
+                    }
+                >
+                    <span>Hidden Spot Requests</span>
                 </NavLink>
 
                 <NavLink

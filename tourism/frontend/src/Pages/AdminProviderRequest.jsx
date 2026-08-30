@@ -1,22 +1,30 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import AdminNavbar from "../Components/AdminNavbar";
 import api from "../services/api";
 import "../styles/AdminProviderRequest.css";
 
 function AdminProviderRequests() {
     const navigate = useNavigate();
+    const location = useLocation();
     const [requests, setRequests] = useState([]);
+    const [statusFilter, setStatusFilter] = useState("all");
     const adminName = localStorage.getItem("name") || "Admin";
 
     useEffect(() => {
+        const queryParams = new URLSearchParams(location.search);
+        if (queryParams.get("filter") === "pending") {
+            setStatusFilter("pending");
+        } else {
+            setStatusFilter("all");
+        }
         loadRequests();
-    }, []);
+    }, [location.search]);
 
     const loadRequests = async () => {
         try {
             const res = await api.get("provider-requests/");
-            setRequests(res.data);
+            setRequests(res.data || []);
         } catch (err) {
             console.log(err);
         }
@@ -51,6 +59,13 @@ function AdminProviderRequests() {
         (r) => r.approval_status === "Pending"
     ).length;
 
+    const displayedRequests = requests.filter((r) => {
+        if (statusFilter === "pending") {
+            return r.approval_status === "Pending";
+        }
+        return true;
+    });
+
     return (
         <div className="admin-dashboard">
             {/* SIDEBAR NAVBAR */}
@@ -66,22 +81,12 @@ function AdminProviderRequests() {
                     </div>
 
                     <div className="admin-user">
-                        <div className="notification" title="Notifications">
-                            🔔<span className="notification-dot"></span>
-                        </div>
                         <div className="user-avatar">
-                            {adminName.slice(0, 2).toUpperCase()}
+                            AD
                         </div>
                         <div className="user-info">
-                            <strong>{adminName}</strong>
-                            <span className="service-type-badge-pill">🛡️ Super Admin</span>
+                            <strong>Admin</strong>
                         </div>
-                        <button
-                            className="top-logout-btn"
-                            onClick={handleLogout}
-                        >
-                            🚪 Logout
-                        </button>
                     </div>
                 </header>
 
@@ -101,6 +106,45 @@ function AdminProviderRequests() {
                         </div>
                     </div>
 
+                    {/* FILTER BUTTONS */}
+                    <div style={{ display: "flex", gap: "10px", marginBottom: "16px" }}>
+                        <button
+                            type="button"
+                            onClick={() => setStatusFilter("pending")}
+                            style={{
+                                padding: "8px 16px",
+                                borderRadius: "8px",
+                                border: statusFilter === "pending" ? "2px solid #0284c7" : "1px solid #cbd5e1",
+                                background: statusFilter === "pending" ? "#0284c7" : "#ffffff",
+                                color: statusFilter === "pending" ? "#ffffff" : "#334155",
+                                fontWeight: "600",
+                                fontSize: "12px",
+                                cursor: "pointer",
+                                transition: "all 0.2s ease"
+                            }}
+                        >
+                            ◷ Pending Requests ({pendingCount})
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => setStatusFilter("all")}
+                            style={{
+                                padding: "8px 16px",
+                                borderRadius: "8px",
+                                border: statusFilter === "all" ? "2px solid #0284c7" : "1px solid #cbd5e1",
+                                background: statusFilter === "all" ? "#0284c7" : "#ffffff",
+                                color: statusFilter === "all" ? "#ffffff" : "#334155",
+                                fontWeight: "600",
+                                fontSize: "12px",
+                                cursor: "pointer",
+                                transition: "all 0.2s ease"
+                            }}
+                        >
+                            All Requests ({requests.length})
+                        </button>
+                    </div>
+
                     {/* REQUESTS TABLE CONTAINER WITH HORIZONTAL SCROLL FOR FULL VISIBILITY */}
                     <div className="table-wrapper-card">
                         <table className="provider-request-table">
@@ -117,8 +161,8 @@ function AdminProviderRequests() {
                             </thead>
 
                             <tbody>
-                                {requests.length > 0 ? (
-                                    requests.map((item) => (
+                                {displayedRequests.length > 0 ? (
+                                    displayedRequests.map((item) => (
                                         <tr key={item.request_id}>
                                             <td className="fw-bold">{item.full_name}</td>
                                             <td>{item.email}</td>

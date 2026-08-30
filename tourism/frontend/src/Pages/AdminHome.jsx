@@ -12,7 +12,9 @@ export default function AdminHome() {
         tourists_count: 0,
         providers_count: 0,
         destinations_count: 0,
-        pending_requests_count: 0
+        pending_requests_count: 0,
+        bookings_count: 0,
+        pending_hidden_spots_count: 0
     });
     const [loading, setLoading] = useState(true);
 
@@ -28,7 +30,9 @@ export default function AdminHome() {
                     tourists_count: res.data.tourists_count || 0,
                     providers_count: res.data.providers_count || 0,
                     destinations_count: res.data.destinations_count || 0,
-                    pending_requests_count: res.data.pending_requests_count || 0
+                    pending_requests_count: res.data.pending_requests_count || 0,
+                    bookings_count: res.data.bookings_count || 0,
+                    pending_hidden_spots_count: res.data.pending_hidden_spots_count || 0
                 });
             }
         } catch (error) {
@@ -58,22 +62,12 @@ export default function AdminHome() {
                     </div>
 
                     <div className="admin-user">
-                        <div className="notification" title="Notifications">
-                            🔔<span className="notification-dot"></span>
-                        </div>
                         <div className="user-avatar">
-                            {adminName.slice(0, 2).toUpperCase()}
+                            AD
                         </div>
                         <div className="user-info">
-                            <strong>{adminName}</strong>
-                            <span className="service-type-badge-pill">🛡️ Super Admin</span>
+                            <strong>Admin</strong>
                         </div>
-                        <button
-                            className="top-logout-btn"
-                            onClick={handleLogout}
-                        >
-                            🚪 Logout
-                        </button>
                     </div>
                 </header>
 
@@ -97,7 +91,12 @@ export default function AdminHome() {
 
                     {/* DYNAMIC REAL-TIME STATS GRID (TOURISTS, SERVICE PROVIDERS, DESTINATIONS, PENDING REQUESTS) */}
                     <div className="stats-grid">
-                        <div className="stat-card">
+                        <div
+                            className="stat-card"
+                            onClick={() => navigate("/admin/tourists")}
+                            role="button"
+                            tabIndex={0}
+                        >
                             <div className="stat-icon service-icon">👤</div>
                             <div>
                                 <span>Tourists</span>
@@ -105,7 +104,12 @@ export default function AdminHome() {
                             </div>
                         </div>
 
-                        <div className="stat-card">
+                        <div
+                            className="stat-card"
+                            onClick={() => navigate("/admin/service-providers")}
+                            role="button"
+                            tabIndex={0}
+                        >
                             <div className="stat-icon booking-icon">💼</div>
                             <div>
                                 <span>Service Providers</span>
@@ -113,7 +117,12 @@ export default function AdminHome() {
                             </div>
                         </div>
 
-                        <div className="stat-card">
+                        <div
+                            className="stat-card"
+                            onClick={() => navigate("/admin/add-destination")}
+                            role="button"
+                            tabIndex={0}
+                        >
                             <div className="stat-icon pending-icon">📍</div>
                             <div>
                                 <span>Destinations</span>
@@ -121,11 +130,42 @@ export default function AdminHome() {
                             </div>
                         </div>
 
-                        <div className="stat-card">
+                        <div
+                            className="stat-card"
+                            onClick={() => navigate("/admin/provider-request?filter=pending")}
+                            role="button"
+                            tabIndex={0}
+                        >
                             <div className="stat-icon review-icon">◷</div>
                             <div>
                                 <span>Pending Requests</span>
                                 <h3>{loading ? "..." : stats.pending_requests_count}</h3>
+                            </div>
+                        </div>
+
+                        <div
+                            className="stat-card"
+                            onClick={() => navigate("/admin/bookings")}
+                            role="button"
+                            tabIndex={0}
+                        >
+                            <div className="stat-icon booking-icon">📅</div>
+                            <div>
+                                <span>Bookings</span>
+                                <h3>{loading ? "..." : stats.bookings_count}</h3>
+                            </div>
+                        </div>
+
+                        <div
+                            className="stat-card"
+                            onClick={() => navigate("/admin/hidden-spots")}
+                            role="button"
+                            tabIndex={0}
+                        >
+                            <div className="stat-icon pending-icon">💎</div>
+                            <div>
+                                <span>Hidden Spots</span>
+                                <h3>{loading ? "..." : stats.pending_hidden_spots_count}</h3>
                             </div>
                         </div>
                     </div>

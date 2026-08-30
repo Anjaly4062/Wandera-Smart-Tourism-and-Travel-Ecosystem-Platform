@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "../services/api";
+import MapPicker from "../Components/MapPicker";
 import "../styles/EditHotelModal.css";
 
 export default function EditActivityModal({ activity, isOpen, onClose, onActivityUpdated }) {
@@ -15,6 +16,8 @@ export default function EditActivityModal({ activity, isOpen, onClose, onActivit
         available_times: "",
         capacity: "",
         instructions: "",
+        latitude: "",
+        longitude: "",
     });
 
     const [newImages, setNewImages] = useState([]);
@@ -34,6 +37,8 @@ export default function EditActivityModal({ activity, isOpen, onClose, onActivit
                 available_times: activity.available_times || "",
                 capacity: activity.capacity || "",
                 instructions: activity.instructions || "",
+                latitude: activity.latitude !== undefined && activity.latitude !== null ? activity.latitude : "",
+                longitude: activity.longitude !== undefined && activity.longitude !== null ? activity.longitude : "",
             });
         }
     }, [activity]);
@@ -73,6 +78,12 @@ export default function EditActivityModal({ activity, isOpen, onClose, onActivit
             formData.append("available_times", activityData.available_times);
             formData.append("capacity", activityData.capacity);
             formData.append("instructions", activityData.instructions);
+            if (activityData.latitude !== null && activityData.latitude !== undefined && activityData.latitude !== "") {
+                formData.append("latitude", activityData.latitude);
+            }
+            if (activityData.longitude !== null && activityData.longitude !== undefined && activityData.longitude !== "") {
+                formData.append("longitude", activityData.longitude);
+            }
 
             newImages.forEach((img) => {
                 formData.append("activity_images", img);
@@ -150,6 +161,27 @@ export default function EditActivityModal({ activity, isOpen, onClose, onActivit
                                 <option value="Kasaragod">Kasaragod</option>
                             </select>
                         </div>
+                    </div>
+
+                    <div className="modal-form-group" style={{ marginBottom: "16px" }}>
+                        <label style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <span>Update Map Location</span>
+                            <span style={{ fontSize: "11px", color: "#64748b", fontWeight: "normal" }}>
+                                (Drag or click to adjust pinned coordinates)
+                            </span>
+                        </label>
+                        <MapPicker
+                            latitude={activityData.latitude}
+                            longitude={activityData.longitude}
+                            onLocationSelect={({ latitude, longitude }) => {
+                                setActivityData((prev) => ({
+                                    ...prev,
+                                    latitude: latitude !== null ? latitude : "",
+                                    longitude: longitude !== null ? longitude : "",
+                                }));
+                            }}
+                            height="240px"
+                        />
                     </div>
 
                     <div className="modal-two-col">

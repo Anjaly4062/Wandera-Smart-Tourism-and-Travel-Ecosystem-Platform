@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "../services/api";
+import MapPicker from "../Components/MapPicker";
 import "../styles/EditHotelModal.css";
 
 export default function EditTransportationModal({ transportation, isOpen, onClose, onTransportationUpdated }) {
@@ -13,6 +14,8 @@ export default function EditTransportationModal({ transportation, isOpen, onClos
         email: "",
         price_fare: "",
         availability_status: "Available",
+        latitude: "",
+        longitude: "",
     });
 
     const [newImages, setNewImages] = useState([]);
@@ -30,6 +33,8 @@ export default function EditTransportationModal({ transportation, isOpen, onClos
                 email: transportation.email || "",
                 price_fare: transportation.price_fare || "",
                 availability_status: transportation.availability_status || "Available",
+                latitude: transportation.latitude !== undefined && transportation.latitude !== null ? transportation.latitude : "",
+                longitude: transportation.longitude !== undefined && transportation.longitude !== null ? transportation.longitude : "",
             });
         }
     }, [transportation]);
@@ -67,6 +72,12 @@ export default function EditTransportationModal({ transportation, isOpen, onClos
             formData.append("email", transportationData.email);
             formData.append("price_fare", transportationData.price_fare);
             formData.append("availability_status", transportationData.availability_status);
+            if (transportationData.latitude !== null && transportationData.latitude !== undefined && transportationData.latitude !== "") {
+                formData.append("latitude", transportationData.latitude);
+            }
+            if (transportationData.longitude !== null && transportationData.longitude !== undefined && transportationData.longitude !== "") {
+                formData.append("longitude", transportationData.longitude);
+            }
 
             newImages.forEach((img) => {
                 formData.append("transportation_images", img);
@@ -130,6 +141,27 @@ export default function EditTransportationModal({ transportation, isOpen, onClos
                                 required
                             />
                         </div>
+                    </div>
+
+                    <div className="modal-form-group" style={{ marginBottom: "16px" }}>
+                        <label style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <span>Update Map Location</span>
+                            <span style={{ fontSize: "11px", color: "#64748b", fontWeight: "normal" }}>
+                                (Drag or click to adjust pinned coordinates)
+                            </span>
+                        </label>
+                        <MapPicker
+                            latitude={transportationData.latitude}
+                            longitude={transportationData.longitude}
+                            onLocationSelect={({ latitude, longitude }) => {
+                                setTransportationData((prev) => ({
+                                    ...prev,
+                                    latitude: latitude !== null ? latitude : "",
+                                    longitude: longitude !== null ? longitude : "",
+                                }));
+                            }}
+                            height="240px"
+                        />
                     </div>
 
                     <div className="modal-form-group">

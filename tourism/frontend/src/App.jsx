@@ -3,7 +3,10 @@ import Home from "./Pages/Home";
 import Register from "./Pages/Register";
 import Login from "./Pages/Login";
 import AdminHome from "./Pages/AdminHome";
+import AdminTourists from "./Pages/AdminTourists";
+import AdminServiceProviders from "./Pages/AdminServiceProviders";
 import AdminProviderRequest from "./Pages/AdminProviderRequest";
+import AdminBookings from "./Pages/AdminBookings";
 import ServiceProviderHome from "./Pages/ServiceProviderHome";
 import AdminAddDestination from "./Pages/AdminAddDestination";
 import ViewDestination from "./Pages/ViewDestination";
@@ -22,6 +25,9 @@ import DestinationDetails  from "./Pages/DestinationDetails";
 import ServiceDetails from "./Pages/ServiceDetails";
 import PlanTrip from "./Pages/PlanTrip";
 import ProviderBookings from "./Pages/ProviderBookings";
+import HiddenSpots from "./Pages/HiddenSpots";
+import SubmitHiddenSpot from "./Pages/SubmitHiddenSpot";
+import AdminHiddenSpots from "./Pages/AdminHiddenSpots";
 
 function App() {
   return (
@@ -35,12 +41,18 @@ function App() {
 
         <Route path="/login" element={<Login />} />
         <Route path="/admin" element={<AdminHome />} />
+        <Route path="/admin/tourists" element={<AdminTourists />} />
+        <Route path="/admin/service-providers" element={<AdminServiceProviders />} />
+        <Route path="/admin/bookings" element={<AdminBookings />} />
+        <Route path="/admin/hidden-spots" element={<AdminHiddenSpots />} />
         <Route path="/admin/provider-request" element={<AdminProviderRequest />}/>
         <Route path="/my-profile" element={<MyProfile />} />
         <Route path="/provider-home" element={<ServiceProviderHome />} />
         <Route path="/provider/profile" element={<ServiceProviderProfile />} />
         <Route path="/admin/add-destination" element={<AdminAddDestination />}/>
         <Route path="/destinations" element={<ViewDestination />}/>
+        <Route path="/hidden-spots" element={<HiddenSpots />}/>
+        <Route path="/submit-hidden-spot" element={<SubmitHiddenSpot />}/>
         <Route path="/provider/add-service" element={<AddService/>}/>
         <Route path="/provider/add-hotel" element={<AddHotel/>}/>
         <Route path="/provider/add-room" element={<AddRoom/>}/>

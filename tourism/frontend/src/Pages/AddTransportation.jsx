@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ServiceProviderNavbar from "../Components/ServiceProviderNavbar";
+import MapPicker from "../Components/MapPicker";
 import "../styles/AddTransportation.css";
 import api from "../services/api";
 
@@ -16,6 +17,8 @@ export default function AddTransportation() {
         service_area: "",
         contact_number: "",
         email: "",
+        latitude: "",
+        longitude: "",
     });
 
     const [transImages, setTransImages] = useState([]);
@@ -58,6 +61,12 @@ export default function AddTransportation() {
             formData.append("service_area", transData.service_area);
             formData.append("contact_number", transData.contact_number);
             formData.append("email", transData.email);
+            if (transData.latitude !== null && transData.latitude !== undefined && transData.latitude !== "") {
+                formData.append("latitude", transData.latitude);
+            }
+            if (transData.longitude !== null && transData.longitude !== undefined && transData.longitude !== "") {
+                formData.append("longitude", transData.longitude);
+            }
 
             transImages.forEach((image) => {
                 formData.append("transportation_images", image);
@@ -159,6 +168,24 @@ export default function AddTransportation() {
                                     required
                                 />
                             </div>
+                        </div>
+
+                        <div className="trans-form-group">
+                            <label>
+                                Pin Main Hub on Map <span style={{ color: "#64748b", fontWeight: "normal", fontSize: "12px" }}>(Optional)</span>
+                            </label>
+                            <MapPicker
+                                latitude={transData.latitude}
+                                longitude={transData.longitude}
+                                onLocationSelect={({ latitude, longitude }) => {
+                                    setTransData((prev) => ({
+                                        ...prev,
+                                        latitude: latitude !== null ? latitude : "",
+                                        longitude: longitude !== null ? longitude : "",
+                                    }));
+                                }}
+                                height="260px"
+                            />
                         </div>
 
                         <div className="trans-form-group">

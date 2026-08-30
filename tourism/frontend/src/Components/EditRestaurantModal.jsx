@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "../services/api";
+import MapPicker from "../Components/MapPicker";
 import "../styles/EditHotelModal.css";
 
 export default function EditRestaurantModal({ restaurant, isOpen, onClose, onRestaurantUpdated }) {
@@ -14,6 +15,8 @@ export default function EditRestaurantModal({ restaurant, isOpen, onClose, onRes
         cuisine_type: "",
         opening_time: "",
         closing_time: "",
+        latitude: "",
+        longitude: "",
     });
 
     const [newImages, setNewImages] = useState([]);
@@ -32,6 +35,8 @@ export default function EditRestaurantModal({ restaurant, isOpen, onClose, onRes
                 cuisine_type: restaurant.cuisine_type || "",
                 opening_time: restaurant.opening_time || "",
                 closing_time: restaurant.closing_time || "",
+                latitude: restaurant.latitude !== undefined && restaurant.latitude !== null ? restaurant.latitude : "",
+                longitude: restaurant.longitude !== undefined && restaurant.longitude !== null ? restaurant.longitude : "",
             });
         }
     }, [restaurant]);
@@ -70,6 +75,12 @@ export default function EditRestaurantModal({ restaurant, isOpen, onClose, onRes
             formData.append("cuisine_type", restaurantData.cuisine_type);
             formData.append("opening_time", restaurantData.opening_time);
             formData.append("closing_time", restaurantData.closing_time);
+            if (restaurantData.latitude !== null && restaurantData.latitude !== undefined && restaurantData.latitude !== "") {
+                formData.append("latitude", restaurantData.latitude);
+            }
+            if (restaurantData.longitude !== null && restaurantData.longitude !== undefined && restaurantData.longitude !== "") {
+                formData.append("longitude", restaurantData.longitude);
+            }
 
             newImages.forEach((img) => {
                 formData.append("restaurant_images", img);
@@ -158,6 +169,27 @@ export default function EditRestaurantModal({ restaurant, isOpen, onClose, onRes
                             value={restaurantData.location}
                             onChange={handleChange}
                             required
+                        />
+                    </div>
+
+                    <div className="modal-form-group" style={{ marginBottom: "16px" }}>
+                        <label style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <span>Update Map Location</span>
+                            <span style={{ fontSize: "11px", color: "#64748b", fontWeight: "normal" }}>
+                                (Drag or click to adjust pinned coordinates)
+                            </span>
+                        </label>
+                        <MapPicker
+                            latitude={restaurantData.latitude}
+                            longitude={restaurantData.longitude}
+                            onLocationSelect={({ latitude, longitude }) => {
+                                setRestaurantData((prev) => ({
+                                    ...prev,
+                                    latitude: latitude !== null ? latitude : "",
+                                    longitude: longitude !== null ? longitude : "",
+                                }));
+                            }}
+                            height="240px"
                         />
                     </div>
 

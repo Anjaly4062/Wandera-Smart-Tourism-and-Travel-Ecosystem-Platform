@@ -130,3 +130,22 @@ body,
     min-height: 100%;
     overflow-x: hidden;
 }
+
+/* =========================================================
+   RAZORPAY CHECKOUT MODAL - SMALL BOX & SMALL FONT SIZE
+========================================================= */
+
+.razorpay-container > iframe,
+iframe.razorpay-checkout-frame {
+    transform: scale(0.8) !important;
+    transform-origin: center center !important;
+    transition: transform 0.2s ease !important;
+}
+
+@media (max-width: 768px) {
+    .razorpay-container > iframe,
+    iframe.razorpay-checkout-frame {
+        transform: scale(0.88) !important;
+        transform-origin: center center !important;
+    }
+}

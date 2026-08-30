@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "../services/api";
+import MapPicker from "../Components/MapPicker";
 import "../styles/EditHotelModal.css";
 
 export default function EditHotelModal({ hotel, isOpen, onClose, onHotelUpdated }) {
@@ -13,6 +14,8 @@ export default function EditHotelModal({ hotel, isOpen, onClose, onHotelUpdated 
         email: "",
         check_in_time: "",
         check_out_time: "",
+        latitude: "",
+        longitude: "",
     });
 
     const [facilities, setFacilities] = useState([]);
@@ -32,6 +35,8 @@ export default function EditHotelModal({ hotel, isOpen, onClose, onHotelUpdated 
                 email: hotel.email || "",
                 check_in_time: hotel.check_in_time || "",
                 check_out_time: hotel.check_out_time || "",
+                latitude: hotel.latitude !== undefined && hotel.latitude !== null ? hotel.latitude : "",
+                longitude: hotel.longitude !== undefined && hotel.longitude !== null ? hotel.longitude : "",
             });
 
             if (hotel.facilities) {
@@ -87,6 +92,12 @@ export default function EditHotelModal({ hotel, isOpen, onClose, onHotelUpdated 
             formData.append("email", hotelData.email);
             formData.append("check_in_time", hotelData.check_in_time);
             formData.append("check_out_time", hotelData.check_out_time);
+            if (hotelData.latitude !== null && hotelData.latitude !== undefined && hotelData.latitude !== "") {
+                formData.append("latitude", hotelData.latitude);
+            }
+            if (hotelData.longitude !== null && hotelData.longitude !== undefined && hotelData.longitude !== "") {
+                formData.append("longitude", hotelData.longitude);
+            }
             formData.append("facilities", JSON.stringify(facilities));
 
             newImages.forEach((img) => {
@@ -187,6 +198,27 @@ export default function EditHotelModal({ hotel, isOpen, onClose, onHotelUpdated 
                                 required
                             />
                         </div>
+                    </div>
+
+                    <div className="modal-form-group" style={{ marginBottom: "16px" }}>
+                        <label style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <span>Update Map Location</span>
+                            <span style={{ fontSize: "11px", color: "#64748b", fontWeight: "normal" }}>
+                                (Drag or click to adjust pinned coordinates)
+                            </span>
+                        </label>
+                        <MapPicker
+                            latitude={hotelData.latitude}
+                            longitude={hotelData.longitude}
+                            onLocationSelect={({ latitude, longitude }) => {
+                                setHotelData((prev) => ({
+                                    ...prev,
+                                    latitude: latitude !== null ? latitude : "",
+                                    longitude: longitude !== null ? longitude : "",
+                                }));
+                            }}
+                            height="240px"
+                        />
                     </div>
 
                     <div className="modal-two-col">

@@ -561,9 +561,39 @@ export default function MyProfile() {
                                                 <div className="booking-price-tag">
                                                     ₹{parseFloat(b.total_amount || 0).toLocaleString()}
                                                 </div>
-                                                <span className={`booking-status-pill ${(b.booking_status || "").toLowerCase()}`}>
-                                                    {b.booking_status || "Confirmed"}
-                                                </span>
+                                                <div style={{ display: "flex", gap: "6px", alignItems: "center", justifyContent: "flex-end", flexWrap: "wrap" }}>
+                                                    <span
+                                                        style={{
+                                                            fontSize: "11px",
+                                                            padding: "2px 8px",
+                                                            borderRadius: "12px",
+                                                            fontWeight: "600",
+                                                            background: b.payment_method === "Online" ? "#e0f2fe" : "#f1f5f9",
+                                                            color: b.payment_method === "Online" ? "#0369a1" : "#475569",
+                                                            border: "1px solid",
+                                                            borderColor: b.payment_method === "Online" ? "#bae6fd" : "#cbd5e1"
+                                                        }}
+                                                    >
+                                                        {b.payment_method === "Online" ? "💳 Online" : "💵 Offline"}
+                                                    </span>
+                                                    <span
+                                                        style={{
+                                                            fontSize: "11px",
+                                                            padding: "2px 8px",
+                                                            borderRadius: "12px",
+                                                            fontWeight: "600",
+                                                            background: b.payment_status === "Completed" ? "#ecfdf5" : (b.payment_status === "Failed" ? "#fef2f2" : "#fffbeb"),
+                                                            color: b.payment_status === "Completed" ? "#047857" : (b.payment_status === "Failed" ? "#b91c1c" : "#b45309"),
+                                                            border: "1px solid",
+                                                            borderColor: b.payment_status === "Completed" ? "#a7f3d0" : (b.payment_status === "Failed" ? "#fecaca" : "#fde68a")
+                                                        }}
+                                                    >
+                                                        Payment: {b.payment_status || "Pending"}
+                                                    </span>
+                                                    <span className={`booking-status-pill ${(b.booking_status || "").toLowerCase()}`}>
+                                                        {b.booking_status || "Confirmed"}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
 

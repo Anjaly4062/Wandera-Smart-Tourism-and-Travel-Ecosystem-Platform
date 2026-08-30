@@ -4,6 +4,20 @@ import api from "../services/api";
 import Navbar from "../Components/Navbar";
 import "../styles/PlanTrip.css";
 
+const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+        if (window.Razorpay) {
+            resolve(true);
+            return;
+        }
+        const script = document.createElement("script");
+        script.src = "https://checkout.razorpay.com/v1/checkout.js";
+        script.onload = () => resolve(true);
+        script.onerror = () => resolve(false);
+        document.body.appendChild(script);
+    });
+};
+
 export default function PlanTrip() {
     const navigate = useNavigate();
     const userId = localStorage.getItem("user_id");
@@ -13,6 +27,19 @@ export default function PlanTrip() {
     const [bookingInProgress, setBookingInProgress] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
     const [successBooking, setSuccessBooking] = useState(null);
+    const [pendingBooking, setPendingBooking] = useState(null);
+    const [paymentMethod, setPaymentMethod] = useState("ONLINE");
+    const [paymentProcessing, setPaymentProcessing] = useState(false);
+    const [paymentError, setPaymentError] = useState(null);
+
+    // Today's date in YYYY-MM-DD for min date attribute
+    const todayStr = (() => {
+        const d = new Date();
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    })();
 
     // Form inputs state for each service item mapped by cart_item_id (initially unselected/blank)
     const [itemDetails, setItemDetails] = useState({});
@@ -246,6 +273,10 @@ export default function PlanTrip() {
                 alert(`Please select Check-in and Check-out dates for ${item.provider.business_name}.`);
                 return;
             }
+            if (d.check_in < todayStr) {
+                alert(`Check-in date cannot be in the past for ${item.provider.business_name}. Please select today or a future date.`);
+                return;
+            }
             if (new Date(d.check_out) <= new Date(d.check_in)) {
                 alert(`Check-out date must be after Check-in date for ${item.provider.business_name}.`);
                 return;
@@ -264,6 +295,14 @@ export default function PlanTrip() {
                 alert(`Please select Journey Date for ${item.provider.business_name}.`);
                 return;
             }
+            if (d.journey_date < todayStr) {
+                alert(`Journey date cannot be in the past for ${item.provider.business_name}. Please select today or a future date.`);
+                return;
+            }
+            if (d.return_date && d.return_date < d.journey_date) {
+                alert(`Return date must be on or after Journey date for ${item.provider.business_name}.`);
+                return;
+            }
         }
 
         // Validate activity items
@@ -278,8 +317,21 @@ export default function PlanTrip() {
                 alert(`Please select Activity Date for ${item.provider.business_name}.`);
                 return;
             }
+            if (d.activity_date < todayStr) {
+                alert(`Activity date cannot be in the past for ${item.provider.business_name}. Please select today or a future date.`);
+                return;
+            }
             if (!d.participants_count || parseInt(d.participants_count, 10) < 1) {
                 alert(`Please enter the number of participants for ${item.provider.business_name}.`);
+                return;
+            }
+        }
+
+        // Validate restaurant items
+        for (const item of restaurantItems) {
+            const d = itemDetails[item.cart_item_id] || {};
+            if (d.reservation_date && d.reservation_date < todayStr) {
+                alert(`Reservation date cannot be in the past for ${item.provider.business_name}. Please select today or a future date.`);
                 return;
             }
         }
@@ -328,13 +380,141 @@ export default function PlanTrip() {
             };
 
             const response = await api.post("booking/create/", payload);
-            setSuccessBooking(response.data.booking);
+            setPendingBooking(response.data.booking);
+            setPaymentError(null);
             fetchTripCart();
         } catch (err) {
             console.error("Booking error:", err);
             alert(err.response?.data?.error || "Failed to complete trip booking. Please check details.");
         } finally {
             setBookingInProgress(false);
+        }
+    };
+
+    const handleProceedWithPayment = async () => {
+        if (!pendingBooking) return;
+
+        if (paymentMethod === "ONLINE") {
+            try {
+                setPaymentProcessing(true);
+                setPaymentError(null);
+
+                const scriptLoaded = await loadRazorpayScript();
+                if (!scriptLoaded) {
+                    setPaymentError("Could not load Razorpay payment gateway. Please check your internet connection.");
+                    setPaymentProcessing(false);
+                    return;
+                }
+
+                // 1. Create order on server using authoritative database total
+                const orderRes = await api.post("payment/create-order/", {
+                    booking_id: pendingBooking.booking_id
+                });
+                const orderData = orderRes.data;
+
+                // 2. Configure and open Razorpay Standard Checkout (Restricted to Card Payment only)
+                const options = {
+                    key: orderData.key_id,
+                    amount: orderData.amount,
+                    currency: orderData.currency || "INR",
+                    name: "Wandera Smart Tourism",
+                    description: `Booking #${pendingBooking.booking_id} - ${pendingBooking.destination?.name || "Kerala Trip"}`,
+                    order_id: orderData.order_id,
+                    config: {
+                        display: {
+                            blocks: {
+                                card_block: {
+                                    name: "Card Payment",
+                                    instruments: [
+                                        {
+                                            method: "card"
+                                        }
+                                    ]
+                                }
+                            },
+                            sequence: ["block.card_block"],
+                            preferences: {
+                                show_default_blocks: false
+                            }
+                        }
+                    },
+                    method: {
+                        card: true,
+                        netbanking: false,
+                        wallet: false,
+                        upi: false,
+                        paylater: false,
+                        emi: false
+                    },
+                    handler: async function (razorpayResponse) {
+                        try {
+                            setPaymentProcessing(true);
+                            // 3. Verify signature on backend
+                            const verifyRes = await api.post("payment/verify/", {
+                                booking_id: pendingBooking.booking_id,
+                                razorpay_payment_id: razorpayResponse.razorpay_payment_id,
+                                razorpay_order_id: razorpayResponse.razorpay_order_id,
+                                razorpay_signature: razorpayResponse.razorpay_signature,
+                            });
+
+                            if (verifyRes.data?.booking) {
+                                setSuccessBooking(verifyRes.data.booking);
+                                setPendingBooking(null);
+                            }
+                        } catch (vErr) {
+                            console.error("Verification error:", vErr);
+                            setPaymentError(vErr.response?.data?.error || "Payment verification failed. Please contact support.");
+                        } finally {
+                            setPaymentProcessing(false);
+                        }
+                    },
+                    prefill: {
+                        name: orderData.customer?.name || "",
+                        email: orderData.customer?.email || "",
+                        contact: orderData.customer?.phone || ""
+                    },
+                    theme: {
+                        color: "#18261f"
+                    },
+                    modal: {
+                        ondismiss: function () {
+                            setPaymentProcessing(false);
+                            setPaymentError("Payment checkout was closed. You can retry online payment or switch to Offline Payment.");
+                        }
+                    }
+                };
+
+                const rzp = new window.Razorpay(options);
+                rzp.on("payment.failed", function (failResp) {
+                    console.error("Payment failed:", failResp);
+                    setPaymentProcessing(false);
+                    setPaymentError(failResp.error?.description || "Payment failed. Please retry or choose offline payment.");
+                });
+                rzp.open();
+
+            } catch (err) {
+                console.error("Payment initialization error:", err);
+                setPaymentError(err.response?.data?.error || "Failed to initialize payment. Please try again.");
+                setPaymentProcessing(false);
+            }
+        } else {
+            // OFFLINE PAYMENT
+            try {
+                setPaymentProcessing(true);
+                setPaymentError(null);
+                const offRes = await api.post("payment/offline-confirm/", {
+                    booking_id: pendingBooking.booking_id
+                });
+                if (offRes.data?.booking) {
+                    setSuccessBooking(offRes.data.booking);
+                    setPendingBooking(null);
+                }
+            } catch (err) {
+                console.error("Offline confirmation error:", err);
+                setPaymentError(err.response?.data?.error || "Failed to confirm offline booking.");
+            } finally {
+                setPaymentProcessing(false);
+            }
         }
     };
 
@@ -484,6 +664,7 @@ export default function PlanTrip() {
                                                             <label>Check-in Date</label>
                                                             <input
                                                                 type="date"
+                                                                min={todayStr}
                                                                 value={details.check_in || ""}
                                                                 onChange={(e) => handleInputChange(item.cart_item_id, "check_in", e.target.value)}
                                                             />
@@ -493,6 +674,7 @@ export default function PlanTrip() {
                                                             <label>Check-out Date</label>
                                                             <input
                                                                 type="date"
+                                                                min={details.check_in || todayStr}
                                                                 value={details.check_out || ""}
                                                                 onChange={(e) => handleInputChange(item.cart_item_id, "check_out", e.target.value)}
                                                             />
@@ -645,6 +827,7 @@ export default function PlanTrip() {
                                                             <label>Pickup / Journey Date</label>
                                                             <input
                                                                 type="date"
+                                                                min={todayStr}
                                                                 value={details.journey_date || ""}
                                                                 onChange={(e) => handleInputChange(item.cart_item_id, "journey_date", e.target.value)}
                                                             />
@@ -654,6 +837,7 @@ export default function PlanTrip() {
                                                             <label>Return / End Date</label>
                                                             <input
                                                                 type="date"
+                                                                min={details.journey_date || todayStr}
                                                                 value={details.return_date || ""}
                                                                 onChange={(e) => handleInputChange(item.cart_item_id, "return_date", e.target.value)}
                                                             />
@@ -786,6 +970,7 @@ export default function PlanTrip() {
                                                             <label>Activity Date</label>
                                                             <input
                                                                 type="date"
+                                                                min={todayStr}
                                                                 value={details.activity_date || ""}
                                                                 onChange={(e) => handleInputChange(item.cart_item_id, "activity_date", e.target.value)}
                                                             />
@@ -903,6 +1088,7 @@ export default function PlanTrip() {
                                                             <label>Reservation Date</label>
                                                             <input
                                                                 type="date"
+                                                                min={todayStr}
                                                                 value={details.reservation_date || ""}
                                                                 onChange={(e) => handleInputChange(item.cart_item_id, "reservation_date", e.target.value)}
                                                             />
@@ -1049,12 +1235,117 @@ export default function PlanTrip() {
                     </div>
                 )}
 
+                {/* PAYMENT METHOD SELECTION MODAL */}
+                {pendingBooking && !successBooking && (
+                    <div className="booking-modal-backdrop">
+                        <div className="booking-payment-modal">
+                            <div className="payment-modal-header">
+                                <h2>Confirm Your Booking</h2>
+                                <p className="modal-lead">
+                                    Booking #{pendingBooking.booking_id} has been created. Select payment method to finalize.
+                                </p>
+                            </div>
+
+                            {/* ITEM SUMMARY */}
+                            <div className="payment-items-summary">
+                                {pendingBooking.items?.map((item) => (
+                                    <div className="payment-item-row" key={item.booking_item_id}>
+                                        <div className="payment-item-left">
+                                            <span className="item-cat-badge">{item.service_type}</span>
+                                            <strong>{item.item_name}</strong>
+                                        </div>
+                                        <span className="payment-item-price">
+                                            ₹{parseFloat(item.amount || 0).toLocaleString()}
+                                        </span>
+                                    </div>
+                                ))}
+                                <div className="payment-total-divider"></div>
+                                <div className="payment-total-row">
+                                    <span>Total</span>
+                                    <strong>₹{parseFloat(pendingBooking.total_amount || 0).toLocaleString()}</strong>
+                                </div>
+                            </div>
+
+                            {/* SELECT PAYMENT METHOD */}
+                            <div className="payment-method-section">
+                                <h3>Select Payment Method</h3>
+                                <div className="payment-options-grid">
+                                    <label className={`payment-option-card ${paymentMethod === "ONLINE" ? "selected" : ""}`}>
+                                        <input
+                                            type="radio"
+                                            name="paymentMethod"
+                                            value="ONLINE"
+                                            checked={paymentMethod === "ONLINE"}
+                                            onChange={() => {
+                                                setPaymentMethod("ONLINE");
+                                                setPaymentError(null);
+                                            }}
+                                        />
+                                        <div className="option-card-content">
+                                            <div className="option-title-row">
+                                                <span className="option-icon">💳</span>
+                                                <strong>Online Payment</strong>
+                                                <span className="secure-badge">Instant & Secure</span>
+                                            </div>
+                                            <p>Pay securely using Razorpay (Credit / Debit Card only)</p>
+                                        </div>
+                                    </label>
+
+                                    <label className={`payment-option-card ${paymentMethod === "OFFLINE" ? "selected" : ""}`}>
+                                        <input
+                                            type="radio"
+                                            name="paymentMethod"
+                                            value="OFFLINE"
+                                            checked={paymentMethod === "OFFLINE"}
+                                            onChange={() => {
+                                                setPaymentMethod("OFFLINE");
+                                                setPaymentError(null);
+                                            }}
+                                        />
+                                        <div className="option-card-content">
+                                            <div className="option-title-row">
+                                                <span className="option-icon">💵</span>
+                                                <strong>Offline Payment</strong>
+                                            </div>
+                                            <p>Pay in person / on arrival directly to each respective service provider</p>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            {paymentError && (
+                                <div className="payment-error-banner">
+                                    ⚠️ {paymentError}
+                                </div>
+                            )}
+
+                            <div className="payment-modal-actions">
+                                <button
+                                    className="btn-pay-confirm"
+                                    disabled={paymentProcessing}
+                                    onClick={handleProceedWithPayment}
+                                >
+                                    {paymentProcessing
+                                        ? (paymentMethod === "ONLINE" ? "Opening Razorpay..." : "Confirming...")
+                                        : (paymentMethod === "ONLINE"
+                                            ? `Confirm Booking & Pay ₹${parseFloat(pendingBooking.total_amount || 0).toLocaleString()} →`
+                                            : "Confirm Booking (Offline)")}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* BOOKING SUCCESS MODAL */}
                 {successBooking && (
                     <div className="booking-modal-backdrop">
                         <div className="booking-success-modal">
                             <div className="modal-success-icon">✓</div>
-                            <h2>Trip Booked Successfully</h2>
+                            <h2>
+                                {successBooking.payment_method === "Online" && successBooking.payment_status === "Completed"
+                                    ? "Payment Successful & Trip Confirmed"
+                                    : "Trip Booked Successfully"}
+                            </h2>
                             <p className="modal-lead">
                                 Your complete trip has been confirmed under one booking reference.
                             </p>
@@ -1065,7 +1356,7 @@ export default function PlanTrip() {
                             </div>
 
                             <div className="modal-booking-summary">
-                                <div className="modal-meta-row">
+                                <div className="modal-meta-row" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
                                     <div>
                                         <small>Destination</small>
                                         <strong>{successBooking.destination?.name || "Kerala Trip"}</strong>
@@ -1075,8 +1366,14 @@ export default function PlanTrip() {
                                         <strong>₹{parseFloat(successBooking.total_amount || 0).toLocaleString()}</strong>
                                     </div>
                                     <div>
-                                        <small>Status</small>
-                                        <span className="status-pill confirmed">{successBooking.booking_status}</span>
+                                        <small>Payment Method</small>
+                                        <strong>{successBooking.payment_method || "Offline"}</strong>
+                                    </div>
+                                    <div>
+                                        <small>Payment Status</small>
+                                        <span className={`status-pill ${successBooking.payment_status === "Completed" ? "confirmed" : "pending"}`}>
+                                            {successBooking.payment_status || "Pending"}
+                                        </span>
                                     </div>
                                 </div>
 
