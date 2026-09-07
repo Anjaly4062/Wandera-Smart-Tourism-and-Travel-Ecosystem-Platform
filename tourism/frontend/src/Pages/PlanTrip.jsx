@@ -43,6 +43,8 @@ export default function PlanTrip() {
 
     // Form inputs state for each service item mapped by cart_item_id (initially unselected/blank)
     const [itemDetails, setItemDetails] = useState({});
+    // Real-time availability info mapped by cart_item_id: { available, message, status, totalRooms, availableRooms }
+    const [availabilityStatus, setAvailabilityStatus] = useState({});
 
     useEffect(() => {
         if (!userId) {
@@ -53,6 +55,109 @@ export default function PlanTrip() {
         }
         fetchTripCart();
     }, [userId]);
+
+    // Real-time date-wise availability checking for Hotels and Transportation
+    useEffect(() => {
+        if (!cart?.items || cart.items.length === 0) return;
+
+        const timer = setTimeout(() => {
+            cart.items.forEach(async (item) => {
+                const details = itemDetails[item.cart_item_id];
+                if (!details) return;
+
+                if (item.service_type === "Hotel") {
+                    if (details.room_id && details.check_in && details.check_out) {
+                        if (new Date(details.check_out) <= new Date(details.check_in)) {
+                            setAvailabilityStatus((prev) => ({
+                                ...prev,
+                                [item.cart_item_id]: {
+                                    available: false,
+                                    message: "Check-out date must be after Check-in date.",
+                                    status: "error"
+                                }
+                            }));
+                            return;
+                        }
+                        try {
+                            const roomsCount = parseInt(details.rooms_count, 10) || 1;
+                            const res = await api.get(
+                                `check-availability/?service_type=Hotel&room_id=${details.room_id}&check_in=${details.check_in}&check_out=${details.check_out}&rooms_count=${roomsCount}`
+                            );
+                            setAvailabilityStatus((prev) => ({
+                                ...prev,
+                                [item.cart_item_id]: {
+                                    available: res.data.available,
+                                    message: res.data.message,
+                                    totalRooms: res.data.total_rooms,
+                                    availableRooms: res.data.available_rooms,
+                                    status: res.data.available ? "success" : "error"
+                                }
+                            }));
+                        } catch (err) {
+                            setAvailabilityStatus((prev) => ({
+                                ...prev,
+                                [item.cart_item_id]: {
+                                    available: false,
+                                    message: err.response?.data?.error || "Requested rooms are not available.",
+                                    status: "error"
+                                }
+                            }));
+                        }
+                    } else {
+                        setAvailabilityStatus((prev) => {
+                            const copy = { ...prev };
+                            delete copy[item.cart_item_id];
+                            return copy;
+                        });
+                    }
+                } else if (item.service_type === "Transportation") {
+                    if (details.vehicle_id && details.journey_date) {
+                        if (details.return_date && details.return_date < details.journey_date) {
+                            setAvailabilityStatus((prev) => ({
+                                ...prev,
+                                [item.cart_item_id]: {
+                                    available: false,
+                                    message: "Return date must be on or after Journey date.",
+                                    status: "error"
+                                }
+                            }));
+                            return;
+                        }
+                        try {
+                            const res = await api.get(
+                                `check-availability/?service_type=Transportation&vehicle_id=${details.vehicle_id}&journey_date=${details.journey_date}&return_date=${details.return_date || ""}`
+                            );
+                            setAvailabilityStatus((prev) => ({
+                                ...prev,
+                                [item.cart_item_id]: {
+                                    available: res.data.available,
+                                    message: res.data.message,
+                                    status: res.data.available ? "success" : "error"
+                                }
+                            }));
+                        } catch (err) {
+                            setAvailabilityStatus((prev) => ({
+                                ...prev,
+                                [item.cart_item_id]: {
+                                    available: false,
+                                    message: err.response?.data?.error || "No vehicles available for the selected date.",
+                                    status: "error"
+                                }
+                            }));
+                        }
+                    } else {
+                        setAvailabilityStatus((prev) => {
+                            const copy = { ...prev };
+                            delete copy[item.cart_item_id];
+                            return copy;
+                        });
+                    }
+                }
+            });
+        }, 250);
+
+        return () => clearTimeout(timer);
+    }, [itemDetails, cart]);
 
     const fetchTripCart = async () => {
         try {
@@ -73,8 +178,7 @@ export default function PlanTrip() {
                             room_id: item.room?.room_id ? String(item.room.room_id) : (saved.room_id ? String(saved.room_id) : ""),
                             check_in: saved.check_in || "",
                             check_out: saved.check_out || "",
-                            rooms_count: saved.rooms_count || "",
-                            guests_count: saved.guests_count || ""
+                            rooms_count: saved.rooms_count || "1"
                         };
                     } else if (item.service_type === "Transportation") {
                         initialDetails[item.cart_item_id] = {
@@ -82,8 +186,7 @@ export default function PlanTrip() {
                             journey_date: saved.journey_date || "",
                             return_date: saved.return_date || "",
                             pickup_location: saved.pickup_location || "",
-                            drop_location: saved.drop_location || "",
-                            passengers_count: saved.passengers_count || ""
+                            drop_location: saved.drop_location || ""
                         };
                     } else if (item.service_type === "Activity") {
                         initialDetails[item.cart_item_id] = {
@@ -91,12 +194,6 @@ export default function PlanTrip() {
                             activity_date: saved.activity_date || "",
                             time_slot: saved.time_slot || "",
                             participants_count: saved.participants_count || ""
-                        };
-                    } else if (item.service_type === "Restaurant") {
-                        initialDetails[item.cart_item_id] = {
-                            reservation_date: saved.reservation_date || "",
-                            reservation_time: saved.reservation_time || "",
-                            guests_count: saved.guests_count || ""
                         };
                     }
                 });
@@ -221,13 +318,6 @@ export default function PlanTrip() {
                 selectedSubItem: selectedItem,
                 isConfigured: Boolean(selectedItem && details.activity_date && participants > 0)
             };
-        } else if (item.service_type === "Restaurant") {
-            return {
-                total: 0,
-                unitRate: 0,
-                guests: parseInt(details.guests_count, 10) || 0,
-                isConfigured: Boolean(details.reservation_date && details.reservation_time)
-            };
         }
         return { total: 0, unitRate: 0, isConfigured: false };
     };
@@ -236,11 +326,10 @@ export default function PlanTrip() {
     const items = cart?.items || [];
     const grandTotal = items.reduce((sum, item) => sum + calculateItemPrice(item).total, 0);
 
-    // Group items by category
+    // Group items by category (Restaurants are view-only)
     const hotelItems = items.filter((i) => i.service_type === "Hotel");
     const transportItems = items.filter((i) => i.service_type === "Transportation");
     const activityItems = items.filter((i) => i.service_type === "Activity");
-    const restaurantItems = items.filter((i) => i.service_type === "Restaurant");
 
     // Overall Trip Dates
     let tripStartDate = null;
@@ -248,15 +337,16 @@ export default function PlanTrip() {
     items.forEach((item) => {
         const d = itemDetails[item.cart_item_id];
         if (d) {
-            const start = d.check_in || d.journey_date || d.activity_date || d.reservation_date;
-            const end = d.check_out || d.return_date || d.activity_date || d.reservation_date;
+            const start = d.check_in || d.journey_date || d.activity_date;
+            const end = d.check_out || d.return_date || d.activity_date;
             if (start && (!tripStartDate || start < tripStartDate)) tripStartDate = start;
             if (end && (!tripEndDate || end > tripEndDate)) tripEndDate = end;
         }
     });
 
     const handleBookThisTrip = async () => {
-        if (!items || items.length === 0) {
+        const bookableItems = items.filter((i) => i.service_type !== "Restaurant");
+        if (!bookableItems || bookableItems.length === 0) {
             alert("Your trip is empty! Please add services to book.");
             return;
         }
@@ -281,6 +371,25 @@ export default function PlanTrip() {
                 alert(`Check-out date must be after Check-in date for ${item.provider.business_name}.`);
                 return;
             }
+            const roomsCount = parseInt(d.rooms_count, 10) || 1;
+            if (roomsCount < 1) {
+                alert(`Please enter a valid Number of Rooms for ${item.provider.business_name}.`);
+                return;
+            }
+
+            // Real-time server-side availability check before creating booking
+            try {
+                const checkRes = await api.get(
+                    `check-availability/?service_type=Hotel&room_id=${d.room_id}&check_in=${d.check_in}&check_out=${d.check_out}&rooms_count=${roomsCount}`
+                );
+                if (!checkRes.data?.available) {
+                    alert(checkRes.data?.message || `Requested rooms are not available for ${item.provider.business_name}.`);
+                    return;
+                }
+            } catch (cErr) {
+                alert(cErr.response?.data?.error || `Requested rooms are not available for ${item.provider.business_name}.`);
+                return;
+            }
         }
 
         // Validate transportation items
@@ -301,6 +410,20 @@ export default function PlanTrip() {
             }
             if (d.return_date && d.return_date < d.journey_date) {
                 alert(`Return date must be on or after Journey date for ${item.provider.business_name}.`);
+                return;
+            }
+
+            // Real-time server-side availability check before creating booking
+            try {
+                const checkRes = await api.get(
+                    `check-availability/?service_type=Transportation&vehicle_id=${d.vehicle_id}&journey_date=${d.journey_date}&return_date=${d.return_date || ""}`
+                );
+                if (!checkRes.data?.available) {
+                    alert(checkRes.data?.message || `No vehicles available for ${item.provider.business_name} for the selected date.`);
+                    return;
+                }
+            } catch (cErr) {
+                alert(cErr.response?.data?.error || `No vehicles available for ${item.provider.business_name} for the selected date.`);
                 return;
             }
         }
@@ -327,17 +450,8 @@ export default function PlanTrip() {
             }
         }
 
-        // Validate restaurant items
-        for (const item of restaurantItems) {
-            const d = itemDetails[item.cart_item_id] || {};
-            if (d.reservation_date && d.reservation_date < todayStr) {
-                alert(`Reservation date cannot be in the past for ${item.provider.business_name}. Please select today or a future date.`);
-                return;
-            }
-        }
-
-        // Prepare items payload
-        const preparedItems = items.map((item) => {
+        // Prepare items payload (excluding restaurants)
+        const preparedItems = bookableItems.map((item) => {
             const details = itemDetails[item.cart_item_id] || {};
             const calc = calculateItemPrice(item);
 
@@ -350,17 +464,13 @@ export default function PlanTrip() {
                 check_in: details.check_in || null,
                 check_out: details.check_out || null,
                 rooms_count: parseInt(details.rooms_count, 10) || 1,
-                guests_count: parseInt(details.guests_count, 10) || 1,
                 journey_date: details.journey_date || null,
                 return_date: details.return_date || null,
                 pickup_location: details.pickup_location || "",
                 drop_location: details.drop_location || "",
-                passengers_count: parseInt(details.passengers_count, 10) || 1,
                 activity_date: details.activity_date || null,
                 time_slot: details.time_slot || "",
                 participants_count: parseInt(details.participants_count, 10) || 1,
-                reservation_date: details.reservation_date || null,
-                reservation_time: details.reservation_time || "",
                 amount: calc.total,
                 details: {
                     ...details,
@@ -654,7 +764,7 @@ export default function PlanTrip() {
                                                                 <option value="">-- Choose a Room --</option>
                                                                 {rooms.map((r) => (
                                                                     <option key={r.room_id} value={r.room_id}>
-                                                                        {r.room_name} (₹{r.price_per_night}/night • Max {r.maximum_guests} guests)
+                                                                        {r.room_name} (₹{r.price_per_night}/night • Total Rooms: {r.total_rooms})
                                                                     </option>
                                                                 ))}
                                                             </select>
@@ -680,30 +790,28 @@ export default function PlanTrip() {
                                                             />
                                                         </div>
 
-                                                        <div className="form-field">
+                                                        <div className="form-field full-width">
                                                             <label>Number of Rooms</label>
                                                             <input
                                                                 type="number"
                                                                 min="1"
-                                                                max="10"
+                                                                max="100"
                                                                 placeholder="e.g. 1"
                                                                 value={details.rooms_count || ""}
                                                                 onChange={(e) => handleInputChange(item.cart_item_id, "rooms_count", e.target.value)}
                                                             />
                                                         </div>
-
-                                                        <div className="form-field">
-                                                            <label>Number of Guests</label>
-                                                            <input
-                                                                type="number"
-                                                                min="1"
-                                                                max="20"
-                                                                placeholder="e.g. 2"
-                                                                value={details.guests_count || ""}
-                                                                onChange={(e) => handleInputChange(item.cart_item_id, "guests_count", e.target.value)}
-                                                            />
-                                                        </div>
                                                     </div>
+
+                                                    {/* REAL-TIME ROOM AVAILABILITY FEEDBACK */}
+                                                    {availabilityStatus[item.cart_item_id] && (
+                                                        <div className={`availability-feedback-msg ${availabilityStatus[item.cart_item_id].status}`}>
+                                                            <span>
+                                                                {availabilityStatus[item.cart_item_id].status === "success" ? "✓" : "⚠️"}
+                                                            </span>
+                                                            <span>{availabilityStatus[item.cart_item_id].message}</span>
+                                                        </div>
+                                                    )}
 
                                                     {/* CALCULATION FOOTER */}
                                                     <div className="card-calc-footer">
@@ -796,7 +904,7 @@ export default function PlanTrip() {
                                                     </div>
 
                                                     <div className="booking-fields-grid">
-                                                        <div className="form-field">
+                                                        <div className="form-field full-width">
                                                             <label>Select Vehicle</label>
                                                             <select
                                                                 value={details.vehicle_id || ""}
@@ -809,18 +917,6 @@ export default function PlanTrip() {
                                                                     </option>
                                                                 ))}
                                                             </select>
-                                                        </div>
-
-                                                        <div className="form-field">
-                                                            <label>Passengers Count</label>
-                                                            <input
-                                                                type="number"
-                                                                min="1"
-                                                                max="50"
-                                                                placeholder="e.g. 2"
-                                                                value={details.passengers_count || ""}
-                                                                onChange={(e) => handleInputChange(item.cart_item_id, "passengers_count", e.target.value)}
-                                                            />
                                                         </div>
 
                                                         <div className="form-field">
@@ -863,6 +959,16 @@ export default function PlanTrip() {
                                                             />
                                                         </div>
                                                     </div>
+
+                                                    {/* REAL-TIME VEHICLE AVAILABILITY FEEDBACK */}
+                                                    {availabilityStatus[item.cart_item_id] && (
+                                                        <div className={`availability-feedback-msg ${availabilityStatus[item.cart_item_id].status}`}>
+                                                            <span>
+                                                                {availabilityStatus[item.cart_item_id].status === "success" ? "✓" : "⚠️"}
+                                                            </span>
+                                                            <span>{availabilityStatus[item.cart_item_id].message}</span>
+                                                        </div>
+                                                    )}
 
                                                     <div className="card-calc-footer">
                                                         <div className="calc-breakdown">
@@ -1023,115 +1129,6 @@ export default function PlanTrip() {
                                 </section>
                             )}
 
-                            {/* RESTAURANTS */}
-                            {restaurantItems.length > 0 && (
-                                <section className="service-category-group">
-                                    <div className="category-section-title">
-                                        <span className="cat-icon">🍽️</span>
-                                        <h3>Dining & Restaurants</h3>
-                                        <span className="cat-badge">{restaurantItems.length} selected</span>
-                                    </div>
-
-                                    {restaurantItems.map((item) => {
-                                        const provider = item.provider;
-                                        const restaurant = provider.restaurant;
-                                        const details = itemDetails[item.cart_item_id] || {};
-                                        const restImg = restaurant?.images?.[0]?.image || provider.restaurant?.images?.[0]?.image;
-
-                                        return (
-                                            <div className="service-card-item" key={item.cart_item_id}>
-                                                {/* 1. SERVICE DETAILS */}
-                                                <div className="service-details-row">
-                                                    {restImg && (
-                                                        <img
-                                                            src={getImageUrl(restImg)}
-                                                            alt={restaurant?.restaurant_name}
-                                                            className="service-thumb-photo"
-                                                        />
-                                                    )}
-                                                    <div className="service-meta-content">
-                                                        <div className="service-badge-name-row">
-                                                            <span className="category-tag restaurant">Restaurant</span>
-                                                            <h4>{restaurant?.restaurant_name || provider.business_name}</h4>
-                                                        </div>
-                                                        <p className="service-location-text">
-                                                            🍴 {restaurant?.cuisine_type || "Restaurant"} • 📍 {restaurant?.location || provider.location || "Location not specified"}
-                                                        </p>
-                                                    </div>
-                                                    <div className="service-action-buttons">
-                                                        <button
-                                                            className="btn-service-view"
-                                                            onClick={() => navigate(`/service/${provider.provider_id}`)}
-                                                        >
-                                                            View
-                                                        </button>
-                                                        <button
-                                                            className="btn-service-remove"
-                                                            onClick={() => handleRemoveItem(item.cart_item_id, provider.business_name)}
-                                                        >
-                                                            Remove
-                                                        </button>
-                                                    </div>
-                                                </div>
-
-                                                {/* DIVIDER */}
-                                                <div className="card-section-divider"></div>
-
-                                                {/* 2. BOOKING DETAILS FORM */}
-                                                <div className="booking-details-section">
-                                                    <div className="booking-section-heading">
-                                                        <span>Reservation Details</span>
-                                                    </div>
-
-                                                    <div className="booking-fields-grid">
-                                                        <div className="form-field">
-                                                            <label>Reservation Date</label>
-                                                            <input
-                                                                type="date"
-                                                                min={todayStr}
-                                                                value={details.reservation_date || ""}
-                                                                onChange={(e) => handleInputChange(item.cart_item_id, "reservation_date", e.target.value)}
-                                                            />
-                                                        </div>
-
-                                                        <div className="form-field">
-                                                            <label>Reservation Time</label>
-                                                            <input
-                                                                type="time"
-                                                                value={details.reservation_time || ""}
-                                                                onChange={(e) => handleInputChange(item.cart_item_id, "reservation_time", e.target.value)}
-                                                            />
-                                                        </div>
-
-                                                        <div className="form-field">
-                                                            <label>Number of Guests</label>
-                                                            <input
-                                                                type="number"
-                                                                min="1"
-                                                                max="20"
-                                                                placeholder="e.g. 2"
-                                                                value={details.guests_count || ""}
-                                                                onChange={(e) => handleInputChange(item.cart_item_id, "guests_count", e.target.value)}
-                                                            />
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="card-calc-footer">
-                                                        <div className="calc-breakdown">
-                                                            <span>Table Reservation</span>
-                                                        </div>
-                                                        <div className="calc-total">
-                                                            <span>Reservation:</span>
-                                                            <strong>Free / Included</strong>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </section>
-                            )}
-
                             {/* ADD MORE SERVICES BUTTON */}
                             <div className="add-more-services-row">
                                 <button
@@ -1184,7 +1181,7 @@ export default function PlanTrip() {
                                         <div className="summary-price-row">
                                             <span>Hotel Accommodation</span>
                                             <strong>
-                                                ₹{hotelItems.reduce((acc, i) => acc + calculateItemPrice(i).total, 0).toLocaleString()}
+                                                 ₹{hotelItems.reduce((acc, i) => acc + calculateItemPrice(i).total, 0).toLocaleString()}
                                             </strong>
                                         </div>
                                     )}
@@ -1204,13 +1201,6 @@ export default function PlanTrip() {
                                             <strong>
                                                 ₹{activityItems.reduce((acc, i) => acc + calculateItemPrice(i).total, 0).toLocaleString()}
                                             </strong>
-                                        </div>
-                                    )}
-
-                                    {restaurantItems.length > 0 && (
-                                        <div className="summary-price-row">
-                                            <span>Dining Reservations</span>
-                                            <strong className="text-free">Free</strong>
                                         </div>
                                     )}
                                 </div>

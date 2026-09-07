@@ -1718,6 +1718,9 @@ def add_to_trip_cart(request):
         except ServiceProvider.DoesNotExist:
             return Response({"error": "Service provider not found."}, status=status.HTTP_404_NOT_FOUND)
 
+        if provider.service_type == "Restaurant":
+            return Response({"error": "Restaurants are view-only and cannot be booked or added to the trip cart."}, status=status.HTTP_400_BAD_REQUEST)
+
         # Get or create active trip cart for user
         cart, _ = TripCart.objects.get_or_create(user=user)
 
@@ -1933,6 +1936,181 @@ def update_trip_cart_item_details(request, cart_item_id):
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+def check_room_availability_for_dates(room_id, check_in_str, check_out_str, exclude_booking_id=None):
+    """
+    Calculates date-wise room availability for a given room_id over [check_in, check_out).
+    Returns (available_rooms, total_rooms, booked_rooms, error_message)
+    """
+    try:
+        from datetime import datetime
+        room = Room.objects.get(room_id=room_id)
+        total_rooms = int(room.total_rooms or 1)
+
+        if not check_in_str or not check_out_str:
+            return total_rooms, total_rooms, 0, None
+
+        req_in = datetime.strptime(str(check_in_str).strip(), "%Y-%m-%d").date()
+        req_out = datetime.strptime(str(check_out_str).strip(), "%Y-%m-%d").date()
+        if req_out <= req_in:
+            return 0, total_rooms, 0, "Check-out date must be after Check-in date."
+
+        booking_items = BookingItem.objects.filter(
+            service_type="Hotel",
+            booking__booking_status__in=["Confirmed", "Pending", "Completed"]
+        ).exclude(status="Cancelled")
+
+        if exclude_booking_id:
+            booking_items = booking_items.exclude(booking__booking_id=exclude_booking_id)
+
+        booked_count = 0
+        for item in booking_items:
+            details = item.details or {}
+            item_room_id = details.get("room_id") or item.service_id
+            if str(item_room_id) != str(room_id):
+                continue
+
+            b_in_str = details.get("check_in")
+            b_out_str = details.get("check_out")
+            if not b_in_str or not b_out_str:
+                continue
+
+            try:
+                b_in = datetime.strptime(str(b_in_str).strip(), "%Y-%m-%d").date()
+                b_out = datetime.strptime(str(b_out_str).strip(), "%Y-%m-%d").date()
+                # Interval overlap [b_in, b_out) with [req_in, req_out)
+                if b_in < req_out and b_out > req_in:
+                    b_rooms = int(details.get("rooms_count") or 1)
+                    booked_count += b_rooms
+            except ValueError:
+                continue
+
+        available = max(0, total_rooms - booked_count)
+        return available, total_rooms, booked_count, None
+    except Room.DoesNotExist:
+        return 0, 0, 0, "Selected room type was not found."
+    except Exception as e:
+        return 0, 0, 0, str(e)
+
+
+def check_vehicle_availability_for_dates(vehicle_id, journey_date_str, return_date_str=None, exclude_booking_id=None):
+    """
+    Checks if a vehicle is available for a given journey_date to return_date range.
+    Returns (is_available, error_message)
+    """
+    try:
+        from datetime import datetime
+        vehicle = Vehicle.objects.get(vehicle_id=vehicle_id)
+        if vehicle.availability_status and vehicle.availability_status.lower() not in ["available", "active"]:
+            return False, f"Vehicle '{vehicle.vehicle_name}' is currently marked as {vehicle.availability_status}."
+
+        if not journey_date_str:
+            return True, None
+
+        req_start = datetime.strptime(str(journey_date_str).strip(), "%Y-%m-%d").date()
+        req_end = datetime.strptime(str(return_date_str).strip(), "%Y-%m-%d").date() if return_date_str else req_start
+        if req_end < req_start:
+            return False, "Return date cannot be before journey date."
+
+        booking_items = BookingItem.objects.filter(
+            service_type="Transportation",
+            booking__booking_status__in=["Confirmed", "Pending", "Completed"]
+        ).exclude(status="Cancelled")
+
+        if exclude_booking_id:
+            booking_items = booking_items.exclude(booking__booking_id=exclude_booking_id)
+
+        for item in booking_items:
+            details = item.details or {}
+            item_veh_id = details.get("vehicle_id") or item.service_id
+            if str(item_veh_id) != str(vehicle_id):
+                continue
+
+            b_start_str = details.get("journey_date")
+            b_end_str = details.get("return_date") or b_start_str
+            if not b_start_str:
+                continue
+
+            try:
+                b_start = datetime.strptime(str(b_start_str).strip(), "%Y-%m-%d").date()
+                b_end = datetime.strptime(str(b_end_str).strip(), "%Y-%m-%d").date() if b_end_str else b_start
+                # Overlap: b_start <= req_end and b_end >= req_start
+                if b_start <= req_end and b_end >= req_start:
+                    return False, f"Vehicle '{vehicle.vehicle_name}' is already booked for the selected date(s)."
+            except ValueError:
+                continue
+
+        return True, None
+    except Vehicle.DoesNotExist:
+        return False, "Selected vehicle was not found."
+    except Exception as e:
+        return False, str(e)
+
+
+@api_view(["GET"])
+def check_service_availability(request):
+    """
+    API endpoint for checking real-time date-wise availability for Hotel rooms and Transportation vehicles.
+    """
+    service_type = request.query_params.get("service_type")
+
+    if service_type == "Hotel":
+        room_id = request.query_params.get("room_id")
+        check_in = request.query_params.get("check_in")
+        check_out = request.query_params.get("check_out")
+        rooms_count_param = request.query_params.get("rooms_count")
+
+        if not room_id:
+            return Response({"error": "room_id is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        available_rooms, total_rooms, booked_rooms, err = check_room_availability_for_dates(room_id, check_in, check_out)
+        if err:
+            return Response({"error": err, "available": False}, status=status.HTTP_400_BAD_REQUEST)
+
+        requested_rooms = int(rooms_count_param) if rooms_count_param else 1
+        is_available = (available_rooms > 0) and (requested_rooms <= available_rooms)
+
+        if available_rooms <= 0:
+            msg = "No rooms available for the selected date."
+        elif requested_rooms > available_rooms:
+            msg = f"Requested rooms are not available. Only {available_rooms} rooms available for the selected dates."
+        else:
+            msg = f"{available_rooms} of {total_rooms} rooms available for the selected dates."
+
+        return Response({
+            "service_type": "Hotel",
+            "room_id": room_id,
+            "total_rooms": total_rooms,
+            "booked_rooms": booked_rooms,
+            "available_rooms": available_rooms,
+            "requested_rooms": requested_rooms,
+            "available": is_available,
+            "message": msg
+        }, status=status.HTTP_200_OK)
+
+    elif service_type == "Transportation":
+        vehicle_id = request.query_params.get("vehicle_id")
+        journey_date = request.query_params.get("journey_date")
+        return_date = request.query_params.get("return_date")
+
+        if not vehicle_id:
+            return Response({"error": "vehicle_id is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        is_available, err = check_vehicle_availability_for_dates(vehicle_id, journey_date, return_date)
+        msg = err if not is_available else "Vehicle is available for the selected date(s)."
+        if not is_available and not err:
+            msg = "No vehicles available for the selected date."
+
+        return Response({
+            "service_type": "Transportation",
+            "vehicle_id": vehicle_id,
+            "available": is_available,
+            "message": msg
+        }, status=status.HTTP_200_OK)
+
+    else:
+        return Response({"error": "Invalid service_type. Must be 'Hotel' or 'Transportation'."}, status=status.HTTP_400_BAD_REQUEST)
+
+
 @api_view(["POST"])
 def create_booking(request):
     """
@@ -1972,6 +2150,9 @@ def create_booking(request):
             provider_id = item_info.get("provider_id")
             service_type = item_info.get("service_type")
 
+            if service_type == "Restaurant":
+                return Response({"error": "Restaurants are view-only and cannot be booked."}, status=status.HTTP_400_BAD_REQUEST)
+
             try:
                 provider = ServiceProvider.objects.select_related(
                     "destination", "hotel", "restaurant", "transportation", "activity"
@@ -1995,7 +2176,6 @@ def create_booking(request):
                 check_in = item_info.get("check_in") or details.get("check_in")
                 check_out = item_info.get("check_out") or details.get("check_out")
                 rooms_count = int(item_info.get("rooms_count") or details.get("rooms_count") or 1)
-                guests_count = int(item_info.get("guests_count") or details.get("guests_count") or 1)
 
                 if not check_in or not check_out:
                     return Response({"error": f"Check-in and Check-out dates are required for {hotel.hotel_name}."}, status=status.HTTP_400_BAD_REQUEST)
@@ -2011,25 +2191,32 @@ def create_booking(request):
                 except ValueError:
                     nights = 1
 
-                if room_id:
-                    try:
-                        room = Room.objects.get(room_id=room_id, hotel=hotel)
-                        item_name = f"{hotel.hotel_name} - {room.room_name}"
-                        item_amount = float(room.price_per_night) * nights * rooms_count
-                        details["room_name"] = room.room_name
-                        details["price_per_night"] = float(room.price_per_night)
-                    except Room.DoesNotExist:
-                        item_name = hotel.hotel_name
-                        item_amount = float(item_info.get("amount", 0))
-                else:
-                    item_name = hotel.hotel_name
-                    item_amount = float(item_info.get("amount", 0))
+                if not room_id:
+                    return Response({"error": f"Please select a room for {hotel.hotel_name}."}, status=status.HTTP_400_BAD_REQUEST)
 
+                try:
+                    room = Room.objects.get(room_id=room_id, hotel=hotel)
+                except Room.DoesNotExist:
+                    return Response({"error": f"Selected room was not found for {hotel.hotel_name}."}, status=status.HTTP_400_BAD_REQUEST)
+
+                # Date-wise Room Availability Validation
+                available_rooms, total_rooms, booked_rooms, err = check_room_availability_for_dates(room_id, check_in, check_out)
+                if err:
+                    return Response({"error": err}, status=status.HTTP_400_BAD_REQUEST)
+                if available_rooms <= 0:
+                    return Response({"error": f"No rooms available for {room.room_name} for the selected date."}, status=status.HTTP_400_BAD_REQUEST)
+                if rooms_count > available_rooms:
+                    return Response({"error": f"Requested rooms are not available for {room.room_name}. Only {available_rooms} room(s) available for the selected dates."}, status=status.HTTP_400_BAD_REQUEST)
+
+                item_name = f"{hotel.hotel_name} - {room.room_name}"
+                item_amount = float(room.price_per_night) * nights * rooms_count
+                details["room_id"] = room_id
+                details["room_name"] = room.room_name
+                details["price_per_night"] = float(room.price_per_night)
                 details["check_in"] = str(check_in)
                 details["check_out"] = str(check_out)
                 details["nights"] = nights
                 details["rooms_count"] = rooms_count
-                details["guests_count"] = guests_count
 
             elif service_type == "Transportation" and hasattr(provider, "transportation"):
                 transportation = provider.transportation
@@ -2039,40 +2226,44 @@ def create_booking(request):
                 return_date = item_info.get("return_date") or details.get("return_date")
                 pickup_location = item_info.get("pickup_location") or details.get("pickup_location", "")
                 drop_location = item_info.get("drop_location") or details.get("drop_location", "")
-                passengers_count = int(item_info.get("passengers_count") or details.get("passengers_count") or 1)
+
+                if not journey_date:
+                    return Response({"error": f"Journey date is required for {transportation.service_name}."}, status=status.HTTP_400_BAD_REQUEST)
 
                 days = 1
-                if journey_date:
-                    try:
-                        d_start = datetime.strptime(str(journey_date).strip(), "%Y-%m-%d").date()
-                        if d_start < timezone.localdate():
-                            return Response({"error": f"Journey date cannot be in the past for {transportation.service_name}. Please select today or a future date."}, status=status.HTTP_400_BAD_REQUEST)
-                        if return_date:
-                            d_end = datetime.strptime(str(return_date).strip(), "%Y-%m-%d").date()
-                            days = max(1, (d_end - d_start).days)
-                    except ValueError:
-                        days = 1
+                try:
+                    d_start = datetime.strptime(str(journey_date).strip(), "%Y-%m-%d").date()
+                    if d_start < timezone.localdate():
+                        return Response({"error": f"Journey date cannot be in the past for {transportation.service_name}. Please select today or a future date."}, status=status.HTTP_400_BAD_REQUEST)
+                    if return_date:
+                        d_end = datetime.strptime(str(return_date).strip(), "%Y-%m-%d").date()
+                        days = max(1, (d_end - d_start).days)
+                except ValueError:
+                    days = 1
 
-                if vehicle_id:
-                    try:
-                        vehicle = Vehicle.objects.get(vehicle_id=vehicle_id, transportation=transportation)
-                        item_name = f"{transportation.service_name} - {vehicle.vehicle_name}"
-                        item_amount = float(vehicle.price_fare) * days
-                        details["vehicle_name"] = vehicle.vehicle_name
-                        details["fare_unit"] = vehicle.fare_unit
-                        details["price_fare"] = float(vehicle.price_fare)
-                    except Vehicle.DoesNotExist:
-                        item_name = transportation.service_name
-                        item_amount = float(transportation.price_fare) * days
-                else:
-                    item_name = transportation.service_name
-                    item_amount = float(transportation.price_fare) * days
+                if not vehicle_id:
+                    return Response({"error": f"Please select a vehicle for {transportation.service_name}."}, status=status.HTTP_400_BAD_REQUEST)
 
+                try:
+                    vehicle = Vehicle.objects.get(vehicle_id=vehicle_id, transportation=transportation)
+                except Vehicle.DoesNotExist:
+                    return Response({"error": f"Selected vehicle was not found for {transportation.service_name}."}, status=status.HTTP_400_BAD_REQUEST)
+
+                # Date-wise Vehicle Availability Validation
+                is_available, err = check_vehicle_availability_for_dates(vehicle_id, journey_date, return_date)
+                if not is_available:
+                    return Response({"error": err or f"No vehicles available for {vehicle.vehicle_name} for the selected date."}, status=status.HTTP_400_BAD_REQUEST)
+
+                item_name = f"{transportation.service_name} - {vehicle.vehicle_name}"
+                item_amount = float(vehicle.price_fare) * days
+                details["vehicle_id"] = vehicle_id
+                details["vehicle_name"] = vehicle.vehicle_name
+                details["fare_unit"] = vehicle.fare_unit
+                details["price_fare"] = float(vehicle.price_fare)
                 details["journey_date"] = str(journey_date) if journey_date else ""
                 details["return_date"] = str(return_date) if return_date else ""
                 details["pickup_location"] = pickup_location
                 details["drop_location"] = drop_location
-                details["passengers_count"] = passengers_count
                 details["days"] = days
 
             elif service_type == "Activity" and hasattr(provider, "activity"):
@@ -2108,27 +2299,6 @@ def create_booking(request):
                 details["activity_date"] = str(activity_date) if activity_date else ""
                 details["time_slot"] = time_slot
                 details["participants_count"] = participants_count
-
-            elif service_type == "Restaurant" and hasattr(provider, "restaurant"):
-                restaurant = provider.restaurant
-                service_id = restaurant.restaurant_id
-                item_name = restaurant.restaurant_name
-                reservation_date = item_info.get("reservation_date") or details.get("reservation_date")
-                reservation_time = item_info.get("reservation_time") or details.get("reservation_time")
-                guests_count = int(item_info.get("guests_count") or details.get("guests_count") or 2)
-                item_amount = float(item_info.get("amount", 0))
-
-                if reservation_date:
-                    try:
-                        d_res = datetime.strptime(str(reservation_date).strip(), "%Y-%m-%d").date()
-                        if d_res < timezone.localdate():
-                            return Response({"error": f"Reservation date cannot be in the past for {restaurant.restaurant_name}. Please select today or a future date."}, status=status.HTTP_400_BAD_REQUEST)
-                    except ValueError:
-                        pass
-
-                details["reservation_date"] = str(reservation_date) if reservation_date else ""
-                details["reservation_time"] = str(reservation_time) if reservation_time else ""
-                details["guests_count"] = guests_count
 
             else:
                 item_name = provider.business_name
@@ -2894,6 +3064,55 @@ def reject_hidden_spot(request, spot_id):
         return Response({"message": f"'{spot.name}' request has been rejected."}, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(["GET"])
+def get_services_by_type(request, service_type=None):
+    """
+    Returns all service providers of a given service_type (Hotel, Restaurant, Transportation, Activity)
+    or all services if no type is specified, without any destination filtering.
+    """
+    try:
+        type_param = service_type or request.query_params.get("type", "")
+        # Map common aliases / case-insensitive
+        type_map = {
+            "hotel": "Hotel",
+            "hotels": "Hotel",
+            "restaurant": "Restaurant",
+            "restaurants": "Restaurant",
+            "transportation": "Transportation",
+            "transport": "Transportation",
+            "activity": "Activity",
+            "activities": "Activity",
+        }
+
+        providers = ServiceProvider.objects.all().distinct().select_related(
+            "destination",
+            "hotel",
+            "restaurant",
+            "transportation",
+            "activity"
+        ).prefetch_related(
+            "hotel__images",
+            "hotel__facilities",
+            "hotel__rooms__images",
+            "restaurant__images",
+            "restaurant__facilities",
+            "transportation__images",
+            "transportation__vehicles",
+            "activity__images",
+            "activity__items"
+        ).order_by("-provider_id")
+
+        if type_param:
+            normalized_type = type_map.get(type_param.lower().strip(), type_param.strip().capitalize())
+            providers = providers.filter(service_type__iexact=normalized_type)
+
+        serializer = ServiceProviderSerializer(providers, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
 

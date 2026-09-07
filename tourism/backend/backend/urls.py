@@ -72,6 +72,9 @@ urlpatterns = [
     path("api/admin/hidden-spot/<int:spot_id>/reject/", views.reject_hidden_spot, name="reject-hidden-spot"),
     path("api/edit-destination/<int:destination_id>/", views.edit_destination, name="edit-destination"),
     path("api/delete-destination/<int:destination_id>/", views.delete_destination, name="delete-destination"),
+    path("api/services/", views.get_services_by_type, name="services-all"),
+    path("api/services/<str:service_type>/", views.get_services_by_type, name="services-by-type"),
+    path("api/check-availability/", views.check_service_availability, name="check-availability"),
 ]
 
 import os

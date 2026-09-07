@@ -192,25 +192,27 @@ export default function ServiceDetails() {
                     <span className="service-type-badge">{provider.service_type}</span>
                     <h1>{serviceTitle}</h1>
                     <p>📍 {serviceLocation}</p>
-                    <div className="hero-action-row" style={{ marginTop: "12px" }}>
-                        <button
-                            className="add-to-trip-hero-btn"
-                            onClick={() => handleAddToTrip()}
-                            disabled={addingId === providerId}
-                            style={{
-                                background: "#ffffff",
-                                color: "#1c2621",
-                                border: "1px solid #ccd2cf",
-                                padding: "7px 16px",
-                                borderRadius: "6px",
-                                fontWeight: "600",
-                                fontSize: "12.5px",
-                                cursor: "pointer"
-                            }}
-                        >
-                            {addingId === providerId ? "Adding to Trip..." : "+ Add to Trip"}
-                        </button>
-                    </div>
+                    {provider.service_type !== "Restaurant" && (
+                        <div className="hero-action-row" style={{ marginTop: "12px" }}>
+                            <button
+                                className="add-to-trip-hero-btn"
+                                onClick={() => handleAddToTrip()}
+                                disabled={addingId === providerId}
+                                style={{
+                                    background: "#ffffff",
+                                    color: "#1c2621",
+                                    border: "1px solid #ccd2cf",
+                                    padding: "7px 16px",
+                                    borderRadius: "6px",
+                                    fontWeight: "600",
+                                    fontSize: "12.5px",
+                                    cursor: "pointer"
+                                }}
+                            >
+                                {addingId === providerId ? "Adding to Trip..." : "+ Add to Trip"}
+                            </button>
+                        </div>
+                    )}
                 </div>
             </section>
 

@@ -28,6 +28,10 @@ import ProviderBookings from "./Pages/ProviderBookings";
 import HiddenSpots from "./Pages/HiddenSpots";
 import SubmitHiddenSpot from "./Pages/SubmitHiddenSpot";
 import AdminHiddenSpots from "./Pages/AdminHiddenSpots";
+import Hotels from "./Pages/Hotels";
+import Transportation from "./Pages/Transportation";
+import Restaurants from "./Pages/Restaurants";
+import Activities from "./Pages/Activities";
 
 function App() {
   return (
@@ -51,6 +55,10 @@ function App() {
         <Route path="/provider/profile" element={<ServiceProviderProfile />} />
         <Route path="/admin/add-destination" element={<AdminAddDestination />}/>
         <Route path="/destinations" element={<ViewDestination />}/>
+        <Route path="/hotels" element={<Hotels />}/>
+        <Route path="/transportation" element={<Transportation />}/>
+        <Route path="/restaurants" element={<Restaurants />}/>
+        <Route path="/activities" element={<Activities />}/>
         <Route path="/hidden-spots" element={<HiddenSpots />}/>
         <Route path="/submit-hidden-spot" element={<SubmitHiddenSpot />}/>
         <Route path="/provider/add-service" element={<AddService/>}/>

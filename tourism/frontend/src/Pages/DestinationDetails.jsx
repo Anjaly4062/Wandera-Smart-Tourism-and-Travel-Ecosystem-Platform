@@ -534,15 +534,17 @@ export default function DestinationDetails() {
                                             >
                                                 View Details →
                                             </button>
-                                            <button
-                                                className="add-to-trip-btn"
-                                                onClick={() => handleAddToTrip(service)}
-                                                disabled={addingProviderId === service.provider_id}
-                                            >
-                                                {addingProviderId === service.provider_id
-                                                    ? "Adding..."
-                                                    : "+ Add to Trip"}
-                                            </button>
+                                            {service.service_type !== "Restaurant" && (
+                                                <button
+                                                    className="add-to-trip-btn"
+                                                    onClick={() => handleAddToTrip(service)}
+                                                    disabled={addingProviderId === service.provider_id}
+                                                >
+                                                    {addingProviderId === service.provider_id
+                                                        ? "Adding..."
+                                                        : "+ Add to Trip"}
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
