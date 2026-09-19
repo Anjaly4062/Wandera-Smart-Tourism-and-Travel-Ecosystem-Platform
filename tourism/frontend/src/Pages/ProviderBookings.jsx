@@ -15,6 +15,17 @@ export default function ProviderBookings() {
         service_type: localStorage.getItem("service_type") || "Hotel"
     });
 
+    // OTP Modal states
+    const [otpModalOpen, setOtpModalOpen] = useState(false);
+    const [otpModalType, setOtpModalType] = useState("checkin"); // 'checkin' | 'checkout'
+    const [activeItem, setActiveItem] = useState(null);
+    const [otpInput, setOtpInput] = useState("");
+    const [otpSubmitting, setOtpSubmitting] = useState(false);
+    const [otpError, setOtpError] = useState("");
+    const [otpSuccess, setOtpSuccess] = useState("");
+    const [requestingOtpId, setRequestingOtpId] = useState(null);
+    const [feedbackMessage, setFeedbackMessage] = useState(null);
+
     const providerId = localStorage.getItem("provider_id");
     const userId = localStorage.getItem("user_id");
 
@@ -74,20 +85,92 @@ export default function ProviderBookings() {
         }
     };
 
+    const showFeedback = (msg, type = "success") => {
+        setFeedbackMessage({ text: msg, type });
+        setTimeout(() => setFeedbackMessage(null), 5000);
+    };
+
+    const openOtpModal = (item, type) => {
+        setActiveItem(item);
+        setOtpModalType(type);
+        setOtpInput("");
+        setOtpError("");
+        setOtpSuccess("");
+        setOtpModalOpen(true);
+    };
+
+    const closeOtpModal = () => {
+        setOtpModalOpen(false);
+        setActiveItem(null);
+        setOtpInput("");
+        setOtpError("");
+        setOtpSuccess("");
+    };
+
+    const handleRequestCheckoutOtp = async (bookingItemId) => {
+        try {
+            setRequestingOtpId(bookingItemId);
+            const res = await api.post(`provider-booking-item/${bookingItemId}/request-checkout/`);
+            showFeedback(res.data?.message || "Checkout OTP generated and sent to tourist email!", "success");
+            // Automatically open checkout OTP modal for convenience
+            const item = bookings.find((b) => b.booking_item_id === bookingItemId);
+            if (item) {
+                openOtpModal(item, "checkout");
+            }
+        } catch (err) {
+            const errDetail = err.response?.data?.error || "Failed to request checkout OTP.";
+            showFeedback(errDetail, "error");
+        } finally {
+            setRequestingOtpId(null);
+        }
+    };
+
+    const handleVerifyOtp = async (e) => {
+        e.preventDefault();
+        if (!otpInput || otpInput.trim().length !== 6) {
+            setOtpError("Please enter the complete 6-digit OTP code.");
+            return;
+        }
+
+        try {
+            setOtpSubmitting(true);
+            setOtpError("");
+            const endpoint =
+                otpModalType === "checkin"
+                    ? `provider-booking-item/${activeItem.booking_item_id}/verify-checkin/`
+                    : `provider-booking-item/${activeItem.booking_item_id}/verify-checkout/`;
+
+            const res = await api.post(endpoint, { otp: otpInput.trim() });
+            setOtpSuccess(res.data?.message || "OTP verified successfully!");
+
+            setTimeout(() => {
+                closeOtpModal();
+                if (providerId) {
+                    fetchBookings(providerId);
+                }
+            }, 1200);
+        } catch (err) {
+            const errDetail = err.response?.data?.error || "Invalid OTP code. Please try again.";
+            setOtpError(errDetail);
+        } finally {
+            setOtpSubmitting(false);
+        }
+    };
+
     const serviceType = providerInfo.service_type || localStorage.getItem("service_type") || "Hotel";
 
     const getPageTitle = (st) => {
         switch (st) {
             case "Hotel":
-                return "🏨 Hotel Room Bookings";
+                return "🏨 Hotel Room Bookings & Check-ins";
             case "Transportation":
-                return "🚍 Transportation & Vehicle Bookings";
+                return "🚍 Transportation & Vehicle Pickups";
             case "Activity":
-                return "🧗 Activity & Experience Bookings";
+                return "🧗 Activity & Experience Check-ins";
             case "Restaurant":
                 return "🍽️ Table Reservations & Dining";
             default:
-                return "💼 Service Bookings";
+                return "💼 Service Bookings & Verifications";
         }
     };
 
@@ -98,12 +181,20 @@ export default function ProviderBookings() {
 
             {/* MAIN CONTENT */}
             <main className="provider-bookings-main">
+                {/* GLOBAL FEEDBACK TOAST */}
+                {feedbackMessage && (
+                    <div className={`provider-toast-alert ${feedbackMessage.type}`}>
+                        {feedbackMessage.type === "success" ? "✓ " : "⚠️ "}
+                        {feedbackMessage.text}
+                    </div>
+                )}
+
                 {/* HEADER */}
                 <header className="provider-bookings-header">
                     <div>
                         <span className="header-type-badge">{serviceType} Service</span>
                         <h1>{getPageTitle(serviceType)}</h1>
-                        <p>View confirmed bookings placed for your {serviceType.toLowerCase()} service.</p>
+                        <p>Verify tourist check-ins, manage in-progress services, and complete checkouts using secure OTPs.</p>
                     </div>
                 </header>
 
@@ -128,16 +219,16 @@ export default function ProviderBookings() {
                             const tourist = b.tourist || {};
 
                             return (
-                                <div className="provider-booking-card" key={b.booking_item_id}>
+                                <div className={`provider-booking-card ${b.checkout_verified ? "card-completed" : (b.checkin_verified ? "card-in-progress" : "")}`} key={b.booking_item_id}>
                                     {/* TOP BAR */}
                                     <div className="card-header-bar">
                                         <div className="header-meta-left">
                                             <span className="booking-ref-tag">
-                                                Booking 
+                                                Booking #{b.booking_id || b.booking_item_id}
                                             </span>
                                             <span className="service-sub-tag">{b.service_type}</span>
                                             <span className="destination-tag">
-                                                 {b.destination?.name || "Kerala"}
+                                                📍 {b.destination?.name || "Kerala"}
                                             </span>
                                         </div>
 
@@ -174,9 +265,21 @@ export default function ProviderBookings() {
                                                 >
                                                     Payment: {b.payment_status || "Pending"}
                                                 </span>
-                                                <div className="status-pill-badge confirmed">
-                                                    ✓ Confirmed
-                                                </div>
+
+                                                {/* SERVICE STATUS PILL */}
+                                                {b.checkout_verified ? (
+                                                    <div className="status-pill-badge completed">
+                                                        ✓ Completed
+                                                    </div>
+                                                ) : b.checkin_verified ? (
+                                                    <div className="status-pill-badge in-progress">
+                                                        ⚡ In Progress
+                                                    </div>
+                                                ) : (
+                                                    <div className="status-pill-badge confirmed">
+                                                        ✓ Confirmed
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -270,6 +373,61 @@ export default function ProviderBookings() {
                                                     </div>
                                                 </div>
                                             )}
+
+                                            {/* VERIFICATION & OTP ACTION BAR */}
+                                            <div className="verification-action-container">
+                                                {!b.checkin_verified ? (
+                                                    <div className="verification-step-box step-checkin-pending">
+                                                        <div className="verification-status-text">
+                                                            <span className="dot-indicator pending"></span>
+                                                            <span><strong>Awaiting Check-in:</strong> Tourist must provide their 6-digit Check-in OTP upon arrival.</span>
+                                                        </div>
+                                                        <button
+                                                            className="btn-verify-otp btn-checkin"
+                                                            onClick={() => openOtpModal(b, "checkin")}
+                                                        >
+                                                            🔑 Verify Check-in OTP
+                                                        </button>
+                                                    </div>
+                                                ) : !b.checkout_verified ? (
+                                                    <div className="verification-step-box step-in-progress">
+                                                        <div className="verification-status-text">
+                                                            <span className="dot-indicator in-progress"></span>
+                                                            <div>
+                                                                <strong>Check-in Verified:</strong> {new Date(b.checkin_verified_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}, {new Date(b.checkin_verified_at).toLocaleDateString()}
+                                                                <div style={{ fontSize: '11px', color: '#0369a1', marginTop: '2px' }}>
+                                                                    Service is active. When service ends, request checkout OTP and verify.
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="checkout-btn-group">
+                                                            <button
+                                                                className="btn-verify-otp btn-request-otp"
+                                                                onClick={() => handleRequestCheckoutOtp(b.booking_item_id)}
+                                                                disabled={requestingOtpId === b.booking_item_id}
+                                                            >
+                                                                {requestingOtpId === b.booking_item_id ? "Sending OTP..." : "📧 Request Checkout OTP"}
+                                                            </button>
+                                                            <button
+                                                                className="btn-verify-otp btn-checkout"
+                                                                onClick={() => openOtpModal(b, "checkout")}
+                                                            >
+                                                                🏁 Verify Checkout OTP
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="verification-step-box step-completed">
+                                                        <div className="verification-status-text">
+                                                            <span className="dot-indicator completed"></span>
+                                                            <div>
+                                                                <strong style={{ color: "#047857" }}>Service Completed & Verified:</strong> Checked in {new Date(b.checkin_verified_at).toLocaleDateString()} • Completed {new Date(b.checkout_verified_at).toLocaleDateString()} {new Date(b.checkout_verified_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                            </div>
+                                                        </div>
+                                                        <span className="badge-fully-completed">✓ Finished</span>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
 
                                         {/* TOURIST CONTACT BLOCK */}
@@ -308,6 +466,111 @@ export default function ProviderBookings() {
                                 </div>
                             );
                         })}
+                    </div>
+                )}
+
+                {/* OTP VERIFICATION MODAL */}
+                {otpModalOpen && activeItem && (
+                    <div className="otp-modal-backdrop" onClick={closeOtpModal}>
+                        <div className="otp-modal-box" onClick={(e) => e.stopPropagation()}>
+                            <button className="otp-modal-close" onClick={closeOtpModal}>×</button>
+
+                            <div className="otp-modal-icon">
+                                {otpModalType === "checkin" ? "🔑" : "🏁"}
+                            </div>
+
+                            <h3>
+                                {otpModalType === "checkin"
+                                    ? "Verify Tourist Check-in OTP"
+                                    : "Verify Service Checkout OTP"}
+                            </h3>
+
+                            <p className="otp-modal-subtitle">
+                                {otpModalType === "checkin"
+                                    ? `Enter the 6-digit Check-in OTP provided by the tourist for ${activeItem.item_name || activeItem.service_type}.`
+                                    : `Enter the 6-digit Checkout OTP sent to ${activeItem.tourist?.email || "the tourist"} to complete this service.`}
+                            </p>
+
+                            {otpError && (
+                                <div className="otp-modal-alert error">
+                                    ⚠️ {otpError}
+                                </div>
+                            )}
+
+                            {otpSuccess && (
+                                <div className="otp-modal-alert success">
+                                    ✓ {otpSuccess}
+                                </div>
+                            )}
+
+                            <form onSubmit={handleVerifyOtp} className="otp-modal-form">
+                                <div className="compact-otp-container">
+                                    <label className="compact-otp-label">Enter 6-Digit Code</label>
+                                    <div className="otp-digit-boxes">
+                                        {[0, 1, 2, 3, 4, 5].map((index) => (
+                                            <input
+                                                key={index}
+                                                id={`otp-digit-${index}`}
+                                                type="text"
+                                                inputMode="numeric"
+                                                maxLength="1"
+                                                className="otp-digit-box"
+                                                value={otpInput[index] || ""}
+                                                onChange={(e) => {
+                                                    const val = e.target.value.replace(/\D/g, "");
+                                                    const currentArr = otpInput.split("");
+                                                    currentArr[index] = val ? val[val.length - 1] : "";
+                                                    const newOtp = currentArr.join("").slice(0, 6);
+                                                    setOtpInput(newOtp);
+                                                    if (val && index < 5) {
+                                                        const nextEl = document.getElementById(`otp-digit-${index + 1}`);
+                                                        if (nextEl) nextEl.focus();
+                                                    }
+                                                }}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "Backspace" && !otpInput[index] && index > 0) {
+                                                        const prevEl = document.getElementById(`otp-digit-${index - 1}`);
+                                                        if (prevEl) {
+                                                            prevEl.focus();
+                                                        }
+                                                    }
+                                                }}
+                                                onPaste={(e) => {
+                                                    e.preventDefault();
+                                                    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+                                                    setOtpInput(pasted);
+                                                    const targetIdx = Math.min(pasted.length, 5);
+                                                    const el = document.getElementById(`otp-digit-${targetIdx}`);
+                                                    if (el) el.focus();
+                                                }}
+                                                autoFocus={index === 0}
+                                                disabled={otpSubmitting || !!otpSuccess}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="otp-modal-actions">
+                                    <button
+                                        type="button"
+                                        className="btn-modal-cancel"
+                                        onClick={closeOtpModal}
+                                        disabled={otpSubmitting}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className={`btn-modal-confirm ${otpModalType === "checkout" ? "btn-confirm-checkout" : ""}`}
+                                        disabled={otpSubmitting || otpInput.trim().length !== 6 || !!otpSuccess}
+                                    >
+                                        {otpSubmitting
+                                            ? "Verifying..."
+                                            : (otpModalType === "checkin" ? "Verify & Check In" : "Verify & Complete Service")}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 )}
             </main>

@@ -31,6 +31,8 @@ export default function PlanTrip() {
     const [paymentMethod, setPaymentMethod] = useState("ONLINE");
     const [paymentProcessing, setPaymentProcessing] = useState(false);
     const [paymentError, setPaymentError] = useState(null);
+    const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+    const [pdfDownloadError, setPdfDownloadError] = useState(null);
 
     // Today's date in YYYY-MM-DD for min date attribute
     const todayStr = (() => {
@@ -625,6 +627,33 @@ export default function PlanTrip() {
             } finally {
                 setPaymentProcessing(false);
             }
+        }
+    };
+
+    const handleDownloadBookingPdf = async (bookingId) => {
+        if (!bookingId) return;
+        try {
+            setIsDownloadingPdf(true);
+            setPdfDownloadError(null);
+            const currentUserId = userId || localStorage.getItem("user_id");
+            const response = await api.get(`booking/${bookingId}/download-pdf/?user_id=${currentUserId}`, {
+                responseType: "blob"
+            });
+
+            const blob = new Blob([response.data], { type: "application/pdf" });
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = downloadUrl;
+            link.download = `Wandera_Booking_${bookingId}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(downloadUrl);
+        } catch (err) {
+            console.error("PDF download error:", err);
+            setPdfDownloadError("Failed to download booking PDF. Please try again or download from My Profile.");
+        } finally {
+            setIsDownloadingPdf(false);
         }
     };
 
@@ -1381,19 +1410,40 @@ export default function PlanTrip() {
                                 </div>
                             </div>
 
-                            <div className="modal-actions">
+                            <div className="modal-actions" style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                                 <button
-                                    className="modal-profile-btn"
-                                    onClick={() => navigate("/my-profile")}
+                                    type="button"
+                                    className="modal-download-pdf-btn"
+                                    disabled={isDownloadingPdf}
+                                    onClick={() => handleDownloadBookingPdf(successBooking.booking_id)}
                                 >
-                                    View in My Profile & Bookings →
+                                    {isDownloadingPdf ? "⏳ Generating PDF..." : "📥 Download Booking PDF"}
                                 </button>
-                                <button
-                                    className="modal-destinations-btn"
-                                    onClick={() => navigate("/destinations")}
-                                >
-                                    Explore More Destinations
-                                </button>
+
+                                {pdfDownloadError && (
+                                    <p style={{ color: "#ef4444", fontSize: "11px", margin: "0", textAlign: "center" }}>
+                                        {pdfDownloadError}
+                                    </p>
+                                )}
+
+                                <div style={{ display: "flex", gap: "8px", width: "100%" }}>
+                                    <button
+                                        type="button"
+                                        className="modal-profile-btn"
+                                        style={{ flex: 1 }}
+                                        onClick={() => navigate("/my-profile")}
+                                    >
+                                        View in My Bookings →
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="modal-destinations-btn"
+                                        style={{ flex: 1 }}
+                                        onClick={() => navigate("/destinations")}
+                                    >
+                                        Explore Destinations
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>

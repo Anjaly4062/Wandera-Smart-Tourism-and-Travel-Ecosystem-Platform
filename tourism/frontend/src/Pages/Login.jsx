@@ -25,15 +25,7 @@ function Login() {
 
         // Check exactly what Django sends
         console.log("LOGIN RESPONSE:", res.data);
-        console.log(
-    "Provider ID received:",
-    res.data.provider_id
-);
-
-
-
-        alert(res.data.message);
-
+        console.log("Provider ID received:", res.data.provider_id);
 
         // Store common user details
         localStorage.setItem(

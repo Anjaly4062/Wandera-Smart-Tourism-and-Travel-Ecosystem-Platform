@@ -738,6 +738,12 @@ class BookingItem(models.Model):
     details = models.JSONField(default=dict, blank=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     status = models.CharField(max_length=20, default='Confirmed')
+    checkin_otp_hash = models.CharField(max_length=128, blank=True, null=True)
+    checkin_verified = models.BooleanField(default=False)
+    checkin_verified_at = models.DateTimeField(blank=True, null=True)
+    checkout_otp_hash = models.CharField(max_length=128, blank=True, null=True)
+    checkout_verified = models.BooleanField(default=False)
+    checkout_verified_at = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

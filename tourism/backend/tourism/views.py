@@ -7,9 +7,15 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth.hashers import make_password, check_password
 import json
+from django.http import HttpResponse
 from django.utils import timezone
 from django.conf import settings
 import razorpay
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
+import secrets
+from .pdf_utils import generate_booking_pdf
+from .email_utils import send_booking_confirmation_email, send_service_checkout_otp_email
 from .models import (
     Hotel, HotelFacility, HotelImage, Room, RoomImage, TouristProfile, User,
     ServiceProviderRequest, ServiceProvider, Destination,
@@ -35,15 +41,35 @@ def tourist_register(request):
 
     data = request.data
 
-
-    if User.objects.filter(email=data['email']).exists():
-
+    # Check required fields
+    if not data.get('full_name') or not data.get('email') or not data.get('password'):
         return Response(
             {
-                "message":"Email already registered"
+                "message": "All fields are required"
             },
             status=400
         )
+
+    # Check email format
+    try:
+        validate_email(data['email'])
+    except ValidationError:
+        return Response(
+            {
+                "message": "Invalid email format"
+            },
+            status=400
+        )
+
+    # Check duplicate email
+    if User.objects.filter(email=data['email']).exists():
+        return Response(
+            {
+                "message": "Email already registered"
+            },
+            status=400
+        )
+
 
 
     User.objects.create(
@@ -2448,6 +2474,10 @@ def get_provider_bookings(request, provider_id):
                 "details": item.details or {},
                 "amount": float(item.amount or 0),
                 "status": item.status,
+                "checkin_verified": item.checkin_verified,
+                "checkin_verified_at": item.checkin_verified_at,
+                "checkout_verified": item.checkout_verified,
+                "checkout_verified_at": item.checkout_verified_at,
                 "created_at": item.created_at,
                 "tourist": {
                     "user_id": user.user_id if user else None,
@@ -2581,6 +2611,38 @@ def create_razorpay_order(request):
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+def generate_and_save_service_checkin_otps(booking):
+    """
+    Generates a secure 6-digit check-in OTP for each BookingItem in the booking,
+    hashes and saves the OTP into `checkin_otp_hash`, and returns the list of
+    plain-text OTP details to be emailed to the tourist.
+    Never exposes plain OTPs anywhere else.
+    """
+    service_otps = []
+    items = booking.items.select_related("provider").all()
+    for item in items:
+        # Generate 6-digit OTP
+        otp = str(secrets.randbelow(900000) + 100000)
+        item.checkin_otp_hash = make_password(otp)
+        item.save(update_fields=["checkin_otp_hash"])
+
+        provider_name = item.provider.business_name if item.provider else "Service Provider"
+        details = item.details or {}
+        start_date = details.get("check_in_date") or details.get("start_date") or details.get("activity_date") or (str(booking.start_date) if booking.start_date else "")
+        end_date = details.get("check_out_date") or details.get("end_date") or (str(booking.end_date) if booking.end_date else "")
+
+        service_otps.append({
+            "booking_item_id": item.booking_item_id,
+            "service_type": item.service_type,
+            "service_title": item.item_name or f"{item.service_type} Service",
+            "provider_business_name": provider_name,
+            "otp": otp,
+            "start_date": start_date,
+            "end_date": end_date,
+        })
+    return service_otps
+
+
 @api_view(["POST"])
 def verify_razorpay_payment(request):
     """
@@ -2628,6 +2690,8 @@ def verify_razorpay_payment(request):
                 "error": "Payment signature verification failed. Transaction cannot be authenticated."
             }, status=status.HTTP_400_BAD_REQUEST)
 
+        was_already_completed = (booking.payment_status == "Completed")
+
         # Payment verified successfully
         booking.payment_method = "Online"
         booking.payment_status = "Completed"
@@ -2638,6 +2702,16 @@ def verify_razorpay_payment(request):
 
         # Update all items status to Confirmed
         booking.items.all().update(status="Confirmed")
+
+        # Generate check-in OTPs and send concise confirmation email with attached detailed PDF
+        if not was_already_completed:
+            try:
+                booking.refresh_from_db()
+                service_otps = generate_and_save_service_checkin_otps(booking)
+                print(f"[ONLINE VERIFY] Triggering confirmation email for Booking #{booking.booking_id}...")
+                send_booking_confirmation_email(booking, service_otps=service_otps)
+            except Exception as mail_err:
+                print(f"[ERROR] Failed to trigger online confirmation email for Booking #{booking.booking_id}: {str(mail_err)}")
 
         return Response({
             "status": "success",
@@ -2670,6 +2744,18 @@ def confirm_offline_payment(request):
         booking.payment_status = "Pending"
         booking.booking_status = "Confirmed"
         booking.save()
+
+        # Update all items status to Confirmed
+        booking.items.all().update(status="Confirmed")
+
+        # Generate check-in OTPs and send concise confirmation email with attached detailed PDF (non-blocking)
+        try:
+            booking.refresh_from_db()
+            service_otps = generate_and_save_service_checkin_otps(booking)
+            print(f"[OFFLINE CONFIRM] Triggering confirmation email for Booking #{booking.booking_id}...")
+            send_booking_confirmation_email(booking, service_otps=service_otps)
+        except Exception as mail_err:
+            print(f"[ERROR] Failed to trigger offline confirmation email for Booking #{booking.booking_id}: {str(mail_err)}")
 
         return Response({
             "status": "success",
@@ -2715,6 +2801,7 @@ def razorpay_webhook(request):
             if order_id:
                 booking = Booking.objects.filter(razorpay_order_id=order_id).first()
                 if booking:
+                    was_already_completed = (booking.payment_status == "Completed")
                     booking.payment_method = "Online"
                     booking.payment_status = "Completed"
                     booking.booking_status = "Confirmed"
@@ -2722,6 +2809,16 @@ def razorpay_webhook(request):
                         booking.razorpay_payment_id = payment_id
                     booking.save()
                     booking.items.all().update(status="Confirmed")
+
+                    # Only send email if not already completed by frontend verify endpoint
+                    if not was_already_completed:
+                        try:
+                            booking.refresh_from_db()
+                            service_otps = generate_and_save_service_checkin_otps(booking)
+                            print(f"[RAZORPAY WEBHOOK] Triggering confirmation email for Booking #{booking.booking_id}...")
+                            send_booking_confirmation_email(booking, service_otps=service_otps)
+                        except Exception as mail_err:
+                            print(f"[ERROR] Failed to trigger webhook confirmation email for Booking #{booking.booking_id}: {str(mail_err)}")
 
         elif event_type == "payment.failed":
             payment_entity = payload.get("payment", {}).get("entity", {})
@@ -2737,6 +2834,284 @@ def razorpay_webhook(request):
 
     except Exception as e:
         print("ERROR IN WEBHOOK PROCESSING:", str(e))
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(["GET"])
+def download_booking_pdf(request, booking_id):
+    """
+    Generates and returns the detailed booking PDF voucher for download.
+    Enforces security: verifies that the requesting user owns the booking or is an admin.
+    """
+    try:
+        try:
+            booking = Booking.objects.select_related("user", "destination").prefetch_related(
+                "items__provider__hotel",
+                "items__provider__transportation",
+                "items__provider__activity"
+            ).get(booking_id=booking_id)
+        except Booking.DoesNotExist:
+            return Response({"error": f"Booking #{booking_id} not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Security check: verify user ownership
+        req_user_id = request.GET.get("user_id")
+        if req_user_id:
+            try:
+                user_id_int = int(req_user_id)
+                # If requesting user is not the booking owner and not admin
+                if booking.user_id != user_id_int:
+                    try:
+                        requesting_user = User.objects.get(user_id=user_id_int)
+                        if requesting_user.role != "admin":
+                            return Response(
+                                {"error": "You are not authorized to download this booking PDF."},
+                                status=status.HTTP_403_FORBIDDEN
+                            )
+                    except User.DoesNotExist:
+                        return Response({"error": "Unauthorized access."}, status=status.HTTP_403_FORBIDDEN)
+            except (ValueError, TypeError):
+                return Response({"error": "Invalid user identification."}, status=status.HTTP_400_BAD_REQUEST)
+
+        pdf_buffer = generate_booking_pdf(booking)
+        filename = f"Wandera_Booking_{booking.booking_id}.pdf"
+
+        response = HttpResponse(pdf_buffer.getvalue(), content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        return response
+
+    except Exception as e:
+        print("ERROR IN DOWNLOAD BOOKING PDF:", str(e))
+        return Response({"error": f"Failed to generate booking PDF: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# =========================================================================
+# OTP-BASED SERVICE CHECK-IN & CHECKOUT VERIFICATION VIEWS
+# =========================================================================
+
+@api_view(["POST"])
+def verify_provider_checkin_otp(request, booking_item_id):
+    """
+    Verifies tourist's 6-digit Check-in OTP provided to the service provider.
+    Transitions BookingItem status to 'In Progress'.
+    """
+    try:
+        otp = request.data.get("otp")
+        if not otp:
+            return Response({"error": "OTP is required for check-in verification."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            item = BookingItem.objects.select_related("booking", "provider").get(booking_item_id=booking_item_id)
+        except BookingItem.DoesNotExist:
+            return Response({"error": "Booking item not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        if item.checkin_verified:
+            return Response({
+                "message": "Check-in has already been verified for this service.",
+                "item": BookingItemSerializer(item).data
+            }, status=status.HTTP_200_OK)
+
+        if not item.checkin_otp_hash:
+            return Response({
+                "error": "No check-in OTP found for this booking. Please contact support."
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Verify OTP
+        if not check_password(str(otp).strip(), item.checkin_otp_hash):
+            return Response({
+                "error": "Invalid Check-in OTP. Please verify the 6-digit code with the tourist and try again."
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # OTP is correct
+        item.checkin_verified = True
+        item.checkin_verified_at = timezone.now()
+        item.status = "In Progress"
+        item.save()
+
+        return Response({
+            "status": "success",
+            "message": f"Check-in verified successfully for {item.item_name or item.service_type}. Service is now In Progress.",
+            "item": BookingItemSerializer(item).data
+        }, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        print("ERROR IN VERIFY CHECKIN OTP:", str(e))
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(["POST"])
+def request_provider_checkout_otp(request, booking_item_id):
+    """
+    Provider requests service completion / checkout.
+    Generates a secure single-use 6-digit checkout OTP and emails it directly to the tourist.
+    """
+    try:
+        try:
+            item = BookingItem.objects.select_related("booking__user", "provider").get(booking_item_id=booking_item_id)
+        except BookingItem.DoesNotExist:
+            return Response({"error": "Booking item not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        if not item.checkin_verified:
+            return Response({
+                "error": "Cannot checkout before service check-in is verified."
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        if item.checkout_verified or item.status == "Completed":
+            return Response({
+                "error": "This service has already been completed and verified."
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Generate 6-digit checkout OTP
+        checkout_otp = str(secrets.randbelow(900000) + 100000)
+        item.checkout_otp_hash = make_password(checkout_otp)
+        item.save(update_fields=["checkout_otp_hash"])
+
+        # Send checkout OTP to the tourist's email
+        tourist_email = item.booking.user.email if item.booking and item.booking.user else None
+        if not tourist_email:
+            return Response({"error": "Tourist email address not found on booking."}, status=status.HTTP_400_BAD_REQUEST)
+
+        email_sent = send_service_checkout_otp_email(item, checkout_otp)
+
+        return Response({
+            "status": "success",
+            "message": f"Checkout OTP generated and sent to tourist ({tourist_email}). Please ask the tourist for the 6-digit code.",
+            "email_sent": email_sent
+        }, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        print("ERROR IN REQUEST CHECKOUT OTP:", str(e))
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(["POST"])
+def verify_provider_checkout_otp(request, booking_item_id):
+    """
+    Verifies tourist's 6-digit Checkout OTP provided to the service provider upon service completion.
+    Marks BookingItem status as 'Completed'.
+    If ALL BookingItems in the parent Booking are 'Completed', marks the parent Booking status as 'Completed'.
+    """
+    try:
+        otp = request.data.get("otp")
+        if not otp:
+            return Response({"error": "OTP is required for checkout verification."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            item = BookingItem.objects.select_related("booking", "provider").get(booking_item_id=booking_item_id)
+        except BookingItem.DoesNotExist:
+            return Response({"error": "Booking item not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        if not item.checkin_verified:
+            return Response({
+                "error": "Check-in must be verified before completing checkout."
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        if item.checkout_verified or item.status == "Completed":
+            return Response({
+                "message": "Checkout has already been verified for this service.",
+                "item": BookingItemSerializer(item).data,
+                "booking_completed": item.booking.booking_status == "Completed"
+            }, status=status.HTTP_200_OK)
+
+        if not item.checkout_otp_hash:
+            return Response({
+                "error": "Checkout OTP has not been requested yet. Please click 'Request Checkout OTP' first."
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Verify OTP
+        if not check_password(str(otp).strip(), item.checkout_otp_hash):
+            return Response({
+                "error": "Invalid Checkout OTP. Please ask the tourist for the 6-digit code received in their email."
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Mark item as completed
+        item.checkout_verified = True
+        item.checkout_verified_at = timezone.now()
+        item.status = "Completed"
+        item.save()
+
+        # Check if ALL items in the booking are completed
+        booking = item.booking
+        all_items = booking.items.all()
+        all_completed = all(b_item.status == "Completed" for b_item in all_items)
+
+        if all_completed:
+            booking.booking_status = "Completed"
+            booking.save(update_fields=["booking_status", "updated_at"])
+            print(f"[TRIP COMPLETED] All services completed for Booking #{booking.booking_id}. Booking status marked as Completed.")
+
+        return Response({
+            "status": "success",
+            "message": f"Checkout verified successfully for {item.item_name or item.service_type}. Service is marked as Completed.",
+            "item": BookingItemSerializer(item).data,
+            "booking_completed": booking.booking_status == "Completed"
+        }, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        print("ERROR IN VERIFY CHECKOUT OTP:", str(e))
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(["GET"])
+def get_user_completed_trips(request, user_id):
+    """
+    Returns list of completed bookings/trips for a tourist.
+    Includes destination, items, providers, verification timestamps, and amounts.
+    """
+    try:
+        try:
+            user = User.objects.get(user_id=user_id)
+        except User.DoesNotExist:
+            return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        completed_bookings = Booking.objects.filter(
+            user=user,
+            booking_status="Completed"
+        ).select_related(
+            "destination", "user"
+        ).prefetch_related(
+            "items__provider__hotel",
+            "items__provider__restaurant",
+            "items__provider__transportation",
+            "items__provider__activity"
+        ).order_by("-updated_at", "-booking_id")
+
+        serializer = BookingSerializer(completed_bookings, many=True)
+        return Response({
+            "completed_trips": serializer.data,
+            "count": completed_bookings.count()
+        }, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        print("ERROR FETCHING COMPLETED TRIPS:", str(e))
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(["GET"])
+def get_completed_trip_details(request, booking_id):
+    """
+    Returns full details for a completed trip including destination info,
+    service breakdown, check-in and checkout timestamps, and payment details.
+    """
+    try:
+        try:
+            booking = Booking.objects.select_related(
+                "destination", "user"
+            ).prefetch_related(
+                "items__provider__hotel",
+                "items__provider__restaurant",
+                "items__provider__transportation",
+                "items__provider__activity"
+            ).get(booking_id=booking_id)
+        except Booking.DoesNotExist:
+            return Response({"error": "Booking not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = BookingSerializer(booking)
+        return Response({
+            "trip": serializer.data
+        }, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        print("ERROR FETCHING COMPLETED TRIP DETAILS:", str(e))
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 

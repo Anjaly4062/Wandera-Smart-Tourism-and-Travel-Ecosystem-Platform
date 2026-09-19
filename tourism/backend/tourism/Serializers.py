@@ -377,6 +377,10 @@ class BookingItemSerializer(serializers.ModelSerializer):
             "details",
             "amount",
             "status",
+            "checkin_verified",
+            "checkin_verified_at",
+            "checkout_verified",
+            "checkout_verified_at",
             "created_at"
         ]
 

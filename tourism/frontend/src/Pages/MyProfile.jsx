@@ -63,6 +63,9 @@ export default function MyProfile() {
     const [passwordMessage, setPasswordMessage] = useState("");
 
     const [userBookings, setUserBookings] = useState([]);
+    const [downloadingBookingId, setDownloadingBookingId] = useState(null);
+    const [bookingTab, setBookingTab] = useState("active"); // 'active' | 'completed'
+    const [selectedCompletedTrip, setSelectedCompletedTrip] = useState(null);
 
     const userId = localStorage.getItem("user_id");
 
@@ -234,6 +237,32 @@ export default function MyProfile() {
             setPasswordMessage(error.response?.data?.error || "Failed to change password.");
         } finally {
             setUpdatingPassword(false);
+        }
+    };
+
+    const handleDownloadBookingPdf = async (bookingId) => {
+        if (!bookingId) return;
+        try {
+            setDownloadingBookingId(bookingId);
+            const currentUserId = userId || localStorage.getItem("user_id");
+            const response = await api.get(`booking/${bookingId}/download-pdf/?user_id=${currentUserId}`, {
+                responseType: "blob"
+            });
+
+            const blob = new Blob([response.data], { type: "application/pdf" });
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = downloadUrl;
+            link.download = `Wandera_Booking_${bookingId}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(downloadUrl);
+        } catch (err) {
+            console.error("PDF download error:", err);
+            alert("Failed to download booking PDF. Please try again.");
+        } finally {
+            setDownloadingBookingId(null);
         }
     };
 
@@ -535,106 +564,238 @@ export default function MyProfile() {
                             <span>05</span>
                             <div>
                                 <h2>My Booked Trips & Itineraries</h2>
-                                <p>View your confirmed multi-service bookings and references</p>
+                                <p>Manage your active itineraries, check-in verification, and completed travel history</p>
                             </div>
                         </div>
 
-                        {userBookings && userBookings.length > 0 ? (
-                            <div className="bookings-list-container">
-                                {userBookings.map((b) => (
-                                    <div key={b.booking_id} className="user-booking-card">
-                                        <div className="booking-card-header">
-                                            <div className="booking-header-left">
-                                                <span className="booking-id-badge">
-                                                    Booking #{b.booking_id}
-                                                </span>
-                                                <h3 className="booking-destination-title">
-                                                    📍 {b.destination?.name || "Kerala Trip Itinerary"}
-                                                </h3>
-                                                {(b.start_date || b.end_date) && (
-                                                    <span className="booking-dates-text">
-                                                        📅 {b.start_date || "N/A"} to {b.end_date || "N/A"}
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <div className="booking-header-right">
-                                                <div className="booking-price-tag">
-                                                    ₹{parseFloat(b.total_amount || 0).toLocaleString()}
-                                                </div>
-                                                <div style={{ display: "flex", gap: "6px", alignItems: "center", justifyContent: "flex-end", flexWrap: "wrap" }}>
-                                                    <span
-                                                        style={{
-                                                            fontSize: "11px",
-                                                            padding: "2px 8px",
-                                                            borderRadius: "12px",
-                                                            fontWeight: "600",
-                                                            background: b.payment_method === "Online" ? "#e0f2fe" : "#f1f5f9",
-                                                            color: b.payment_method === "Online" ? "#0369a1" : "#475569",
-                                                            border: "1px solid",
-                                                            borderColor: b.payment_method === "Online" ? "#bae6fd" : "#cbd5e1"
-                                                        }}
-                                                    >
-                                                        {b.payment_method === "Online" ? "💳 Online" : "💵 Offline"}
-                                                    </span>
-                                                    <span
-                                                        style={{
-                                                            fontSize: "11px",
-                                                            padding: "2px 8px",
-                                                            borderRadius: "12px",
-                                                            fontWeight: "600",
-                                                            background: b.payment_status === "Completed" ? "#ecfdf5" : (b.payment_status === "Failed" ? "#fef2f2" : "#fffbeb"),
-                                                            color: b.payment_status === "Completed" ? "#047857" : (b.payment_status === "Failed" ? "#b91c1c" : "#b45309"),
-                                                            border: "1px solid",
-                                                            borderColor: b.payment_status === "Completed" ? "#a7f3d0" : (b.payment_status === "Failed" ? "#fecaca" : "#fde68a")
-                                                        }}
-                                                    >
-                                                        Payment: {b.payment_status || "Pending"}
-                                                    </span>
-                                                    <span className={`booking-status-pill ${(b.booking_status || "").toLowerCase()}`}>
-                                                        {b.booking_status || "Confirmed"}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
+                        {/* SECTION TABS */}
+                        {(() => {
+                            const activeList = userBookings.filter((b) => b.booking_status !== "Completed");
+                            const completedList = userBookings.filter((b) => b.booking_status === "Completed");
 
-                                        <div className="booking-items-section">
-                                            <strong className="booking-items-label">
-                                                Included Services ({b.items?.length || 0}):
-                                            </strong>
-                                            <div className="booking-items-list">
-                                                {b.items?.map((item) => (
-                                                    <div
-                                                        key={item.booking_item_id}
-                                                        className="booking-item-row"
-                                                    >
-                                                        <div className="booking-item-info">
-                                                            <span className="booking-item-type-badge">
-                                                                {item.service_type}
-                                                            </span>
-                                                            <span className="booking-item-name">{item.item_name}</span>
+                            return (
+                                <>
+                                    <div className="profile-trip-tabs">
+                                        <button
+                                            type="button"
+                                            className={`profile-trip-tab-btn ${bookingTab === "active" ? "active" : ""}`}
+                                            onClick={() => setBookingTab("active")}
+                                        >
+                                            ⚡ Active & Upcoming ({activeList.length})
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className={`profile-trip-tab-btn ${bookingTab === "completed" ? "active" : ""}`}
+                                            onClick={() => setBookingTab("completed")}
+                                        >
+                                            🎉 Completed Trips ({completedList.length})
+                                        </button>
+                                    </div>
+
+                                    {bookingTab === "active" ? (
+                                        activeList.length > 0 ? (
+                                            <div className="bookings-list-container">
+                                                {activeList.map((b) => (
+                                                    <div key={b.booking_id} className="user-booking-card">
+                                                        <div className="booking-card-header">
+                                                            <div className="booking-header-left">
+                                                                <span className="booking-id-badge">
+                                                                    Booking #{b.booking_id}
+                                                                </span>
+                                                                <h3 className="booking-destination-title">
+                                                                    📍 {b.destination?.name || "Kerala Trip Itinerary"}
+                                                                </h3>
+                                                                {(b.start_date || b.end_date) && (
+                                                                    <span className="booking-dates-text">
+                                                                        📅 {b.start_date || "N/A"} to {b.end_date || "N/A"}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <div className="booking-header-right">
+                                                                <div className="booking-price-tag">
+                                                                    ₹{parseFloat(b.total_amount || 0).toLocaleString()}
+                                                                </div>
+                                                                <div style={{ display: "flex", gap: "6px", alignItems: "center", justifyContent: "flex-end", flexWrap: "wrap" }}>
+                                                                    <span
+                                                                        style={{
+                                                                            fontSize: "11px",
+                                                                            padding: "2px 8px",
+                                                                            borderRadius: "12px",
+                                                                            fontWeight: "600",
+                                                                            background: b.payment_method === "Online" ? "#e0f2fe" : "#f1f5f9",
+                                                                            color: b.payment_method === "Online" ? "#0369a1" : "#475569",
+                                                                            border: "1px solid",
+                                                                            borderColor: b.payment_method === "Online" ? "#bae6fd" : "#cbd5e1"
+                                                                        }}
+                                                                    >
+                                                                        {b.payment_method === "Online" ? "💳 Online" : "💵 Offline"}
+                                                                    </span>
+                                                                    <span
+                                                                        style={{
+                                                                            fontSize: "11px",
+                                                                            padding: "2px 8px",
+                                                                            borderRadius: "12px",
+                                                                            fontWeight: "600",
+                                                                            background: b.payment_status === "Completed" ? "#ecfdf5" : (b.payment_status === "Failed" ? "#fef2f2" : "#fffbeb"),
+                                                                            color: b.payment_status === "Completed" ? "#047857" : (b.payment_status === "Failed" ? "#b91c1c" : "#b45309"),
+                                                                            border: "1px solid",
+                                                                            borderColor: b.payment_status === "Completed" ? "#a7f3d0" : (b.payment_status === "Failed" ? "#fecaca" : "#fde68a")
+                                                                        }}
+                                                                    >
+                                                                        Payment: {b.payment_status || "Pending"}
+                                                                    </span>
+                                                                    <span className={`booking-status-pill ${(b.booking_status || "").toLowerCase()}`}>
+                                                                        {b.booking_status || "Confirmed"}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                        <span className="booking-item-price">
-                                                            ₹{parseFloat(item.amount || 0).toLocaleString()}
-                                                        </span>
+
+                                                        <div className="booking-items-section">
+                                                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px", flexWrap: "wrap", gap: "8px" }}>
+                                                                <strong className="booking-items-label" style={{ margin: 0 }}>
+                                                                    Included Services ({b.items?.length || 0}):
+                                                                </strong>
+                                                                <button
+                                                                    type="button"
+                                                                    className="btn-download-booking-pdf"
+                                                                    disabled={downloadingBookingId === b.booking_id}
+                                                                    onClick={() => handleDownloadBookingPdf(b.booking_id)}
+                                                                    title="Download complete booking PDF voucher and tax receipt"
+                                                                >
+                                                                    {downloadingBookingId === b.booking_id ? "⏳ Generating..." : "📥 Download Booking PDF"}
+                                                                </button>
+                                                            </div>
+                                                            <div className="booking-items-list">
+                                                                {b.items?.map((item) => (
+                                                                    <div
+                                                                        key={item.booking_item_id}
+                                                                        className="booking-item-row"
+                                                                    >
+                                                                        <div className="booking-item-info">
+                                                                            <span className="booking-item-type-badge">
+                                                                                {item.service_type}
+                                                                            </span>
+                                                                            <span className="booking-item-name">{item.item_name}</span>
+                                                                            
+                                                                            {/* OTP STATUS BADGE */}
+                                                                            {item.checkout_verified ? (
+                                                                                <span className="item-verify-pill completed">✓ Completed</span>
+                                                                            ) : item.checkin_verified ? (
+                                                                                <span className="item-verify-pill in-progress">⚡ In Progress</span>
+                                                                            ) : (
+                                                                                <span className="item-verify-pill pending" title="Check your confirmation email for the 6-digit Check-in OTP">🔑 OTP in Email</span>
+                                                                            )}
+                                                                        </div>
+                                                                        <span className="booking-item-price">
+                                                                            ₹{parseFloat(item.amount || 0).toLocaleString()}
+                                                                        </span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 ))}
                                             </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="no-bookings-box">
-                                <p>No trips booked yet.</p>
-                                <button
-                                    type="button"
-                                    onClick={() => navigate("/destinations")}
-                                    className="btn-explore-trips"
-                                >
-                                    Explore & Plan a Trip →
-                                </button>
-                            </div>
-                        )}
+                                        ) : (
+                                            <div className="no-bookings-box">
+                                                <p>No active trips right now.</p>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => navigate("/destinations")}
+                                                    className="btn-explore-trips"
+                                                >
+                                                    Explore Destinations & Plan a Trip →
+                                                </button>
+                                            </div>
+                                        )
+                                    ) : (
+                                        completedList.length > 0 ? (
+                                            <div className="bookings-list-container">
+                                                {completedList.map((b) => (
+                                                    <div key={b.booking_id} className="user-booking-card card-trip-completed">
+                                                        <div className="booking-card-header">
+                                                            <div className="booking-header-left">
+                                                                <span className="booking-id-badge" style={{ background: "#047857" }}>
+                                                                    Trip #{b.booking_id}
+                                                                </span>
+                                                                <h3 className="booking-destination-title">
+                                                                    🌴 {b.destination?.name || "Kerala Trip"}
+                                                                </h3>
+                                                                {(b.start_date || b.end_date) && (
+                                                                    <span className="booking-dates-text">
+                                                                        📅 {b.start_date || "N/A"} to {b.end_date || "N/A"}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <div className="booking-header-right">
+                                                                <div className="booking-price-tag">
+                                                                    ₹{parseFloat(b.total_amount || 0).toLocaleString()}
+                                                                </div>
+                                                                <div style={{ display: "flex", gap: "6px", alignItems: "center", justifyContent: "flex-end", flexWrap: "wrap" }}>
+                                                                    <span className="status-pill-badge completed">
+                                                                        ✓ Trip Completed
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="booking-items-section">
+                                                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px", flexWrap: "wrap", gap: "8px" }}>
+                                                                <strong className="booking-items-label" style={{ margin: 0, color: "#047857" }}>
+                                                                    Completed Services ({b.items?.length || 0}):
+                                                                </strong>
+                                                                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                                                                    <button
+                                                                        type="button"
+                                                                        className="btn-view-trip-details"
+                                                                        onClick={() => setSelectedCompletedTrip(b)}
+                                                                    >
+                                                                        📜 View Trip Summary & Verification History
+                                                                    </button>
+                                                                    <button
+                                                                        type="button"
+                                                                        className="btn-download-booking-pdf"
+                                                                        disabled={downloadingBookingId === b.booking_id}
+                                                                        onClick={() => handleDownloadBookingPdf(b.booking_id)}
+                                                                        title="Download complete booking PDF voucher and tax receipt"
+                                                                    >
+                                                                        {downloadingBookingId === b.booking_id ? "⏳..." : "📥 Receipt PDF"}
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                            <div className="booking-items-list">
+                                                                {b.items?.map((item) => (
+                                                                    <div
+                                                                        key={item.booking_item_id}
+                                                                        className="booking-item-row completed-item-row"
+                                                                    >
+                                                                        <div className="booking-item-info">
+                                                                            <span className="booking-item-type-badge">
+                                                                                {item.service_type}
+                                                                            </span>
+                                                                            <span className="booking-item-name">{item.item_name}</span>
+                                                                            <span className="item-verify-pill completed">✓ Verified & Checked Out</span>
+                                                                        </div>
+                                                                        <span className="booking-item-price">
+                                                                            ₹{parseFloat(item.amount || 0).toLocaleString()}
+                                                                        </span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="no-bookings-box">
+                                                <p>No completed trips recorded yet. Once you complete all services in a booking, your past trips will appear here.</p>
+                                            </div>
+                                        )
+                                    )}
+                                </>
+                            );
+                        })()}
                     </section>
 
                     {/* 06: PASSWORD CHANGING OPTION */}
@@ -729,6 +890,95 @@ export default function MyProfile() {
                         </button>
                     </div>
                 </form>
+
+                {/* COMPLETED TRIP DETAILS MODAL */}
+                {selectedCompletedTrip && (
+                    <div className="completed-trip-modal-backdrop" onClick={() => setSelectedCompletedTrip(null)}>
+                        <div className="completed-trip-modal-box" onClick={(e) => e.stopPropagation()}>
+                            <button className="completed-modal-close" onClick={() => setSelectedCompletedTrip(null)}>×</button>
+
+                            <div className="completed-modal-header">
+                                <div className="completed-icon-badge">✓</div>
+                                <div>
+                                    <span className="completed-dest-sub">Completed Trip Itinerary</span>
+                                    <h2>{selectedCompletedTrip.destination?.name || "Kerala Trip"}</h2>
+                                    <p>Booking #{selectedCompletedTrip.booking_id} • Paid via {selectedCompletedTrip.payment_method || "Online"}</p>
+                                </div>
+                            </div>
+
+                            <div className="completed-modal-summary-grid">
+                                <div className="summary-item">
+                                    <small>Total Trip Cost</small>
+                                    <strong>₹{parseFloat(selectedCompletedTrip.total_amount || 0).toLocaleString()}</strong>
+                                </div>
+                                <div className="summary-item">
+                                    <small>Payment Status</small>
+                                    <strong style={{ color: "#047857" }}>{selectedCompletedTrip.payment_status || "Completed"}</strong>
+                                </div>
+                                <div className="summary-item">
+                                    <small>Travel Dates</small>
+                                    <strong>{selectedCompletedTrip.start_date || "N/A"} to {selectedCompletedTrip.end_date || "N/A"}</strong>
+                                </div>
+                                <div className="summary-item">
+                                    <small>Overall Status</small>
+                                    <strong style={{ color: "#047857" }}>✓ Completed</strong>
+                                </div>
+                            </div>
+
+                            <div className="completed-modal-services-list">
+                                <h4>Verified Services & Timestamps</h4>
+                                {selectedCompletedTrip.items?.map((item) => (
+                                    <div key={item.booking_item_id} className="completed-service-card">
+                                        <div className="service-card-top">
+                                            <span className="booking-item-type-badge">{item.service_type}</span>
+                                            <h5>{item.item_name}</h5>
+                                            <strong className="service-cost">₹{parseFloat(item.amount || 0).toLocaleString()}</strong>
+                                        </div>
+
+                                        <div className="service-timestamps-grid">
+                                            <div className="timestamp-badge">
+                                                <small>🔑 Check-in Verified</small>
+                                                <span>
+                                                    {item.checkin_verified_at
+                                                        ? new Date(item.checkin_verified_at).toLocaleString()
+                                                        : "Verified upon arrival"}
+                                                </span>
+                                            </div>
+                                            <div className="timestamp-badge">
+                                                <small>🏁 Checkout / Completion Verified</small>
+                                                <span>
+                                                    {item.checkout_verified_at
+                                                        ? new Date(item.checkout_verified_at).toLocaleString()
+                                                        : "Verified upon departure"}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="completed-modal-footer">
+                                <button
+                                    type="button"
+                                    className="btn-download-booking-pdf modal-download-btn"
+                                    disabled={downloadingBookingId === selectedCompletedTrip.booking_id}
+                                    onClick={() => handleDownloadBookingPdf(selectedCompletedTrip.booking_id)}
+                                >
+                                    {downloadingBookingId === selectedCompletedTrip.booking_id
+                                        ? "⏳ Generating Invoice..."
+                                        : "📥 Download Trip Invoice & Receipt (PDF)"}
+                                </button>
+                                <button
+                                    type="button"
+                                    className="btn-modal-close-gray"
+                                    onClick={() => setSelectedCompletedTrip(null)}
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </main>
     );
 }

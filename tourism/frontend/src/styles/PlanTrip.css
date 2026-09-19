@@ -1128,3 +1128,35 @@ iframe.razorpay-checkout-frame {
     color: #475569;
     border: 1px solid #e2e8f0;
 }
+
+/* Download PDF Button in Success Modal */
+.modal-download-pdf-btn {
+    width: 100%;
+    background: #2b7a4b;
+    color: #ffffff;
+    border: none;
+    padding: 11px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    box-shadow: 0 2px 8px rgba(43, 122, 75, 0.25);
+}
+
+.modal-download-pdf-btn:hover:not(:disabled) {
+    background: #22633d;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(43, 122, 75, 0.35);
+}
+
+.modal-download-pdf-btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    transform: none;
+}
+
