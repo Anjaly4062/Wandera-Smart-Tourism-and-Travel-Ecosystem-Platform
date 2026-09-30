@@ -81,6 +81,8 @@ urlpatterns = [
     path("api/services/", views.get_services_by_type, name="services-all"),
     path("api/services/<str:service_type>/", views.get_services_by_type, name="services-by-type"),
     path("api/check-availability/", views.check_service_availability, name="check-availability"),
+    path("api/admin/destinations-services/", views.admin_destinations_services, name="admin-destinations-services"),
+    path("api/ai-recommendations/", views.ai_recommendations, name="ai-recommendations"),
 ]
 
 import os

@@ -733,99 +733,206 @@ def tourist_profile(request, user_id):
             )
 
 
+def get_destination_place_tokens(dest):
+    tokens = set()
+    dname = (dest.name or "").strip()
+    if dname:
+        tokens.add(dname)
+
+    dname_lower = dname.lower()
+    if 'alappuzha' in dname_lower or 'alleppey' in dname_lower:
+        tokens.add('Alleppey')
+        tokens.add('Alappuzha')
+        tokens.add('Punnamada')
+    elif 'thekkady' in dname_lower:
+        tokens.add('Thekkady')
+        tokens.add('Kumily')
+        tokens.add('Periyar')
+    elif 'fort kochi' in dname_lower or 'kochi' in dname_lower:
+        tokens.add('Fort Kochi')
+        tokens.add('Kochi')
+        tokens.add('Cochin')
+        tokens.add('Mattancherry')
+        tokens.add('Ernakulam')
+        tokens.add('Eranakulam')
+    elif 'munnar' in dname_lower:
+        tokens.add('Munnar')
+        tokens.add('Pallivasal')
+        tokens.add('Devikulam')
+    elif 'wayanad' in dname_lower:
+        tokens.add('Wayanad')
+        tokens.add('Kalpetta')
+        tokens.add('Vythiri')
+        tokens.add('Sulthan Bathery')
+        tokens.add('Mananthavady')
+    elif 'varkala' in dname_lower:
+        tokens.add('Varkala')
+        tokens.add('Papanasam')
+    elif 'kovalam' in dname_lower:
+        tokens.add('Kovalam')
+    elif 'kumarakom' in dname_lower:
+        tokens.add('Kumarakom')
+        tokens.add('Vembanad')
+    elif 'athirappilly' in dname_lower or 'athirapally' in dname_lower:
+        tokens.add('Athirappilly')
+        tokens.add('Athirapally')
+        tokens.add('Chalakudy')
+    elif 'vagamon' in dname_lower:
+        tokens.add('Vagamon')
+        tokens.add('Kurisumala')
+    elif 'bekal' in dname_lower:
+        tokens.add('Bekal')
+    elif 'ponmudi' in dname_lower:
+        tokens.add('Ponmudi')
+    elif 'silent valley' in dname_lower:
+        tokens.add('Silent Valley')
+        tokens.add('Mukkali')
+    elif 'marari' in dname_lower:
+        tokens.add('Marari')
+        tokens.add('Mararikulam')
+    elif 'thenmala' in dname_lower:
+        tokens.add('Thenmala')
+
+    return tokens
+
+
+def match_service_to_destination(sp, dest, place_tokens):
+    import re
+    if sp.destination_id == dest.destination_id:
+        return True
+
+    sp_texts = [
+        sp.area or "", sp.location or "",
+        getattr(sp.hotel, "address", "") if hasattr(sp, "hotel") and sp.hotel else "",
+        getattr(sp.hotel, "location", "") if hasattr(sp, "hotel") and sp.hotel else "",
+        getattr(sp.restaurant, "address", "") if hasattr(sp, "restaurant") and sp.restaurant else "",
+        getattr(sp.restaurant, "location", "") if hasattr(sp, "restaurant") and sp.restaurant else "",
+        getattr(sp.transportation, "service_area", "") if hasattr(sp, "transportation") and sp.transportation else "",
+        getattr(sp.transportation, "starting_location", "") if hasattr(sp, "transportation") and sp.transportation else "",
+        getattr(sp.activity, "location", "") if hasattr(sp, "activity") and sp.activity else "",
+    ]
+    combined_sp_text = " ".join(sp_texts).lower()
+
+    for token in place_tokens:
+        pattern = r'\b' + re.escape(token.lower()) + r'\b'
+        if re.search(pattern, combined_sp_text):
+            return True
+    return False
+
+
 @api_view(["GET"])
 def destination_details(request, destination_id):
-
     try:
         destination = Destination.objects.get(
             destination_id=destination_id,
             status="Active"
         )
-
     except Destination.DoesNotExist:
         return Response(
-            {
-                "message": "Destination not found"
-            },
+            {"message": "Destination not found"},
             status=status.HTTP_404_NOT_FOUND
         )
 
-    import re
-    raw_area = (destination.area or destination.location or destination.name or "").strip()
-    place_tokens = [p.strip() for p in re.split(r'[,/\-\|]', raw_area) if p.strip()]
+    place_tokens = get_destination_place_tokens(destination)
 
-    area_query = Q(destination=destination)
-    for token in place_tokens:
-        if len(token) >= 3:
-            area_query |= Q(area__icontains=token)
-            area_query |= Q(location__icontains=token)
-            area_query |= Q(destination__area__icontains=token)
-            area_query |= Q(destination__location__icontains=token)
-
-    service_providers = ServiceProvider.objects.filter(
-        area_query
-    ).distinct().select_related(
-        "destination",
-        "hotel",
-        "restaurant",
-        "transportation",
-        "activity"
+    all_sps = list(ServiceProvider.objects.select_related(
+        "destination", "hotel", "restaurant", "transportation", "activity", "user"
     ).prefetch_related(
-        "hotel__images",
-        "hotel__facilities",
-        "hotel__rooms__images",
-        "restaurant__images",
-        "restaurant__facilities",
-        "transportation__images",
-        "transportation__vehicles",
-        "activity__images",
-        "activity__items"
-    )
+        "hotel__images", "hotel__facilities", "hotel__rooms__images",
+        "restaurant__images", "restaurant__facilities",
+        "transportation__images", "transportation__vehicles",
+        "activity__images", "activity__items"
+    ))
 
-    # Only the 4 required services
-    hotels = service_providers.filter(
-        service_type="Hotel"
-    )
+    matched_sps = [sp for sp in all_sps if match_service_to_destination(sp, destination, place_tokens)]
 
-    restaurants = service_providers.filter(
-        service_type="Restaurant"
-    )
-
-    transportation = service_providers.filter(
-        service_type="Transportation"
-    )
-
-    activities = service_providers.filter(
-        service_type="Activity"
-    )
+    hotels = [sp for sp in matched_sps if sp.service_type == "Hotel" and hasattr(sp, "hotel") and sp.hotel]
+    restaurants = [sp for sp in matched_sps if sp.service_type == "Restaurant" and hasattr(sp, "restaurant") and sp.restaurant]
+    transportation = [sp for sp in matched_sps if sp.service_type == "Transportation" and hasattr(sp, "transportation") and sp.transportation]
+    activities = [sp for sp in matched_sps if sp.service_type == "Activity" and hasattr(sp, "activity") and sp.activity]
 
     return Response({
-
-        "destination": DestinationSerializer(
-            destination
-        ).data,
-
-        "hotels": ServiceProviderSerializer(
-            hotels,
-            many=True
-        ).data,
-
-        "restaurants": ServiceProviderSerializer(
-            restaurants,
-            many=True
-        ).data,
-
-        "transportation": ServiceProviderSerializer(
-            transportation,
-            many=True
-        ).data,
-
-        "activities": ServiceProviderSerializer(
-            activities,
-            many=True
-        ).data
-
+        "destination": DestinationSerializer(destination).data,
+        "hotels": ServiceProviderSerializer(hotels, many=True).data,
+        "restaurants": ServiceProviderSerializer(restaurants, many=True).data,
+        "transportation": ServiceProviderSerializer(transportation, many=True).data,
+        "activities": ServiceProviderSerializer(activities, many=True).data
     })
+
+
+@api_view(["GET"])
+def admin_destinations_services(request):
+    """
+    Returns all destinations along with real-time counts and detailed breakdowns
+    of nearby services (Hotels, Restaurants, Activities, Transportation).
+    """
+    try:
+        destinations = Destination.objects.all().order_by("destination_id")
+
+        all_sps = list(ServiceProvider.objects.select_related(
+            "destination", "hotel", "restaurant", "transportation", "activity", "user"
+        ).prefetch_related(
+            "hotel__images", "hotel__facilities", "hotel__rooms__images",
+            "restaurant__images", "restaurant__facilities",
+            "transportation__images", "transportation__vehicles",
+            "activity__images", "activity__items"
+        ))
+
+        results = []
+        for dest in destinations:
+            place_tokens = get_destination_place_tokens(dest)
+            matched_sps = [sp for sp in all_sps if match_service_to_destination(sp, dest, place_tokens)]
+
+            hotels_data = []
+            restaurants_data = []
+            activities_data = []
+            transportation_data = []
+
+            for sp in matched_sps:
+                sp_serialized = ServiceProviderSerializer(sp).data
+                if sp.service_type == "Hotel" and hasattr(sp, "hotel") and sp.hotel:
+                    hotels_data.append(sp_serialized)
+                elif sp.service_type == "Restaurant" and hasattr(sp, "restaurant") and sp.restaurant:
+                    restaurants_data.append(sp_serialized)
+                elif sp.service_type == "Activity" and hasattr(sp, "activity") and sp.activity:
+                    activities_data.append(sp_serialized)
+                elif sp.service_type == "Transportation" and hasattr(sp, "transportation") and sp.transportation:
+                    transportation_data.append(sp_serialized)
+
+            image_url = ""
+            if dest.image:
+                image_url = dest.image.url if hasattr(dest.image, "url") else f"/media/{dest.image}"
+
+            results.append({
+                "destination_id": dest.destination_id,
+                "name": dest.name,
+                "category": dest.category,
+                "district": dest.district,
+                "location": dest.location,
+                "area": dest.area,
+                "description": dest.description,
+                "status": dest.status,
+                "image": image_url,
+                "latitude": str(dest.latitude) if dest.latitude is not None else None,
+                "longitude": str(dest.longitude) if dest.longitude is not None else None,
+                "service_counts": {
+                    "hotels": len(hotels_data),
+                    "restaurants": len(restaurants_data),
+                    "activities": len(activities_data),
+                    "transportation": len(transportation_data),
+                    "total": len(hotels_data) + len(restaurants_data) + len(activities_data) + len(transportation_data),
+                },
+                "services": {
+                    "hotels": hotels_data,
+                    "restaurants": restaurants_data,
+                    "activities": activities_data,
+                    "transportation": transportation_data,
+                }
+            })
+
+        return Response(results, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(["GET"])
 def service_details(request, provider_id):
@@ -3487,6 +3594,152 @@ def get_services_by_type(request, service_type=None):
         return Response(serializer.data, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+
+
+
+
+
+
+@api_view(["POST"])
+def ai_recommendations(request):
+    """
+    Generate AI/ML destination recommendations based on user questionnaire inputs:
+    - travel_preferences (e.g., 'Hill Station', 'Beach', 'Wildlife', 'Waterfall', 'Other')
+    - travel_style (e.g., 'Family', 'Solo', 'Couple', 'Friends')
+    - budget_range (e.g., 'Low', 'Moderate', 'High')
+    - trip_days (e.g., '1–2 days', '3–4 days', '5–7 days', 'More than 7 days')
+    """
+    try:
+        data = request.data or {}
+        travel_preferences = data.get("travel_preferences")
+        travel_style = data.get("travel_style")
+        budget_range = data.get("budget_range")
+        trip_days = data.get("trip_days")
+
+        # 1. Validate that all 4 are provided
+        if not travel_preferences or not travel_style or not budget_range or not trip_days:
+            return Response(
+                {
+                    "success": False,
+                    "message": "All four questionnaire fields are required."
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Normalize string inputs if needed
+        travel_preferences = str(travel_preferences).strip()
+        travel_style = str(travel_style).strip()
+        budget_range = str(budget_range).strip()
+        trip_days = str(trip_days).strip().replace("-", "–")
+        if trip_days in ["7+ days", "7+"]:
+            trip_days = "More than 7 days"
+
+        # 2. Validate questionnaire values with prepare_questionnaire from recommendation.py
+        from .recommendation import prepare_questionnaire, get_recommended_destinations
+
+        try:
+            prepare_questionnaire(
+                travel_preferences=travel_preferences,
+                travel_style=travel_style,
+                budget_range=budget_range,
+                trip_days=trip_days
+            )
+        except ValueError as val_err:
+            return Response(
+                {
+                    "success": False,
+                    "message": str(val_err)
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # 3. Get recommended destinations from recommendation.py
+        raw_recommendations = get_recommended_destinations(
+            travel_preferences=travel_preferences,
+            travel_style=travel_style,
+            budget_range=budget_range,
+            trip_days=trip_days
+        )
+
+        # 4. Enrich recommendations with destination and service details
+        dest_ids = [r["destination_id"] for r in raw_recommendations]
+        dest_map = {d.destination_id: d for d in Destination.objects.filter(destination_id__in=dest_ids)}
+
+        sps = list(ServiceProvider.objects.filter(destination_id__in=dest_ids).select_related(
+            "hotel", "restaurant", "transportation", "activity"
+        ).prefetch_related(
+            "hotel__images", "hotel__facilities", "hotel__rooms__images",
+            "restaurant__images", "restaurant__facilities",
+            "transportation__images", "transportation__vehicles",
+            "activity__images", "activity__items"
+        ))
+
+        formatted_recommendations = []
+        for rec in raw_recommendations:
+            d_id = rec["destination_id"]
+            dest = dest_map.get(d_id)
+            image_url = ""
+            if dest and dest.image:
+                image_url = dest.image.url if hasattr(dest.image, "url") else f"/media/{dest.image}"
+
+            dest_sps = [sp for sp in sps if sp.destination_id == d_id]
+
+            hotels = [ServiceProviderSerializer(sp).data for sp in dest_sps if sp.service_type == "Hotel"]
+            activities = [ServiceProviderSerializer(sp).data for sp in dest_sps if sp.service_type == "Activity"]
+            transportation = [ServiceProviderSerializer(sp).data for sp in dest_sps if sp.service_type == "Transportation"]
+            restaurants = [ServiceProviderSerializer(sp).data for sp in dest_sps if sp.service_type == "Restaurant"]
+
+            item_data = {
+                **rec,
+                "image": image_url,
+                "description": dest.description if dest else "",
+                "location": dest.location if dest else "",
+                "area": dest.area if dest else "",
+                "latitude": str(dest.latitude) if dest and dest.latitude is not None else None,
+                "longitude": str(dest.longitude) if dest and dest.longitude is not None else None,
+                "hotels": hotels,
+                "activities": activities,
+                "transportation": transportation,
+                "restaurants": restaurants,
+                "hotel_count": len(hotels),
+                "activity_count": len(activities),
+                "transport_count": len(transportation),
+                "restaurant_count": len(restaurants),
+            }
+            formatted_recommendations.append(item_data)
+
+        matching_recs = [r for r in formatted_recommendations if r.get("preference_match")]
+        other_recs = [r for r in formatted_recommendations if not r.get("preference_match")]
+
+        response_payload = {
+            "success": True,
+            "recommendations": formatted_recommendations,
+            "matching_recommendations": matching_recs,
+            "other_recommendations": other_recs,
+        }
+
+        if not formatted_recommendations:
+            response_payload["message"] = f"No {travel_preferences} destinations are available within your selected budget."
+
+        return Response(
+            response_payload,
+            status=status.HTTP_200_OK
+        )
+
+    except Exception as e:
+        return Response(
+            {
+                "success": False,
+                "message": f"Failed to generate AI recommendations: {str(e)}"
+            },
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+
 
 
 
