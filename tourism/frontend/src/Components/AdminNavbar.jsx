@@ -86,6 +86,15 @@ export default function AdminNavbar() {
                 >
                     <span>Destinations</span>
                 </NavLink>
+
+                <NavLink
+                    to="/admin/destinations-services"
+                    className={({ isActive }) =>
+                        isActive ? "admin-menu-item active" : "admin-menu-item"
+                    }
+                >
+                    <span>Destinations & Services</span>
+                </NavLink>
             </nav>
 
             <div className="admin-bottom-divider"></div>

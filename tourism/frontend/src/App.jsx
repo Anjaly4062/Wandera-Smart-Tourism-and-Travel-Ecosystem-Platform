@@ -28,10 +28,12 @@ import ProviderBookings from "./Pages/ProviderBookings";
 import HiddenSpots from "./Pages/HiddenSpots";
 import SubmitHiddenSpot from "./Pages/SubmitHiddenSpot";
 import AdminHiddenSpots from "./Pages/AdminHiddenSpots";
+import AdminDestinationsServices from "./Pages/AdminDestinationsServices";
 import Hotels from "./Pages/Hotels";
 import Transportation from "./Pages/Transportation";
 import Restaurants from "./Pages/Restaurants";
 import Activities from "./Pages/Activities";
+import WanderaAIAssistant from "./Components/WanderaAIAssistant";
 
 function App() {
   return (
@@ -50,6 +52,7 @@ function App() {
         <Route path="/admin/bookings" element={<AdminBookings />} />
         <Route path="/admin/hidden-spots" element={<AdminHiddenSpots />} />
         <Route path="/admin/provider-request" element={<AdminProviderRequest />}/>
+        <Route path="/admin/destinations-services" element={<AdminDestinationsServices />}/>
         <Route path="/my-profile" element={<MyProfile />} />
         <Route path="/provider-home" element={<ServiceProviderHome />} />
         <Route path="/provider/profile" element={<ServiceProviderProfile />} />
@@ -77,6 +80,8 @@ function App() {
         <Route path="/my-trip" element={<PlanTrip />}/>
 
       </Routes>
+
+      <WanderaAIAssistant />
 
     </BrowserRouter>
   );

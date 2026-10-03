@@ -519,14 +519,6 @@ export default function DestinationDetails() {
                                             </p>
                                         )}
 
-                                        {service.description && (
-                                            <p className="service-description">
-                                                {service.description.length > 120
-                                                    ? service.description.substring(0, 120) + "..."
-                                                    : service.description}
-                                            </p>
-                                        )}
-
                                         <div className="service-card-actions">
                                             <button
                                                 className="service-details-link"

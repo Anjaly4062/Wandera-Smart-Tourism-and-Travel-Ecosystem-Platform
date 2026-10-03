@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.urls import path
+from django.views.generic import TemplateView
 from django.conf import settings
 from django.conf.urls.static import static
 from tourism import views
@@ -142,4 +143,7 @@ def serve_media(request, path):
 urlpatterns += [
     path("media/<path:path>", serve_media, name="media-serve"),
     path("images/<path:path>", serve_media, name="images-serve"),
+]
+urlpatterns += [
+    path("", TemplateView.as_view(template_name="index.html"), name="frontend"),
 ]

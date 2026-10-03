@@ -60,7 +60,7 @@ export default function Navbar() {
                     </NavLink>
                 </li>
 
-                <li 
+                <li
                     className="nav-dropdown-container"
                     onMouseEnter={handleMouseEnterDest}
                     onMouseLeave={handleMouseLeaveDest}
@@ -74,7 +74,7 @@ export default function Navbar() {
                     </NavLink>
 
                     {showDestDropdown && (
-                        <div 
+                        <div
                             className="nav-dropdown-menu"
                             onMouseEnter={handleMouseEnterDest}
                             onMouseLeave={handleMouseLeaveDest}

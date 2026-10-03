@@ -336,326 +336,423 @@ export default function MyProfile() {
                 </div>
             </section>
 
-                {message && (
-                    <div
-                        className={
-                            message.includes("successfully")
-                                ? "profile-message success"
-                                : "profile-message error"
-                        }
-                    >
-                        {message}
+            {message && (
+                <div
+                    className={
+                        message.includes("successfully")
+                            ? "profile-message success"
+                            : "profile-message error"
+                    }
+                >
+                    {message}
+                </div>
+            )}
+
+            <form className="profile-form" onSubmit={handleSubmit}>
+                {/* 01: PERSONAL INFORMATION (AUTO-FILLED) */}
+                <section className="profile-card">
+                    <div className="card-title">
+                        <span>01</span>
+                        <div>
+                            <h2>Personal Information</h2>
+                            <p>Auto-filled with your account details</p>
+                        </div>
                     </div>
-                )}
 
-                <form className="profile-form" onSubmit={handleSubmit}>
-                    {/* 01: PERSONAL INFORMATION (AUTO-FILLED) */}
-                    <section className="profile-card">
-                        <div className="card-title">
-                            <span>01</span>
-                            <div>
-                                <h2>Personal Information</h2>
-                                <p>Auto-filled with your account details</p>
-                            </div>
+                    <div className="form-grid">
+                        <div className="form-group">
+                            <label>Full Name</label>
+                            <input
+                                type="text"
+                                name="full_name"
+                                value={formData.full_name}
+                                onChange={handleChange}
+                                placeholder="Full Name"
+                                required
+                            />
                         </div>
 
-                        <div className="form-grid">
-                            <div className="form-group">
-                                <label>Full Name</label>
-                                <input
-                                    type="text"
-                                    name="full_name"
-                                    value={formData.full_name}
-                                    onChange={handleChange}
-                                    placeholder="Full Name"
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label>Email Address</label>
-                                <input
-                                    type="email"
-                                    value={formData.email || profile?.email || localStorage.getItem("email") || ""}
-                                    disabled
-                                    title="Email address is associated with your login account"
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label>Phone Number</label>
-                                <input
-                                    type="tel"
-                                    name="phone"
-                                    value={formData.phone}
-                                    onChange={handleChange}
-                                    placeholder="Enter contact phone number"
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label>Date of Birth</label>
-                                <input
-                                    type="date"
-                                    name="date_of_birth"
-                                    value={formData.date_of_birth}
-                                    onChange={handleChange}
-                                />
-                            </div>
-                        </div>
-                    </section>
-
-                    {/* 02: TRAVEL PREFERENCES */}
-                    <section className="profile-card">
-                        <div className="card-title">
-                            <span>02</span>
-                            <div>
-                                <h2>Travel Preferences</h2>
-                                <p>Select destination types and experiences you prefer</p>
-                            </div>
+                        <div className="form-group">
+                            <label>Email Address</label>
+                            <input
+                                type="email"
+                                value={formData.email || profile?.email || localStorage.getItem("email") || ""}
+                                disabled
+                                title="Email address is associated with your login account"
+                            />
                         </div>
 
-                        <div className="preference-grid">
-                            {preferenceOptions.map((preference) => (
-                                <label
-                                    key={preference}
-                                    className={
-                                        formData.travel_preferences.includes(preference)
-                                            ? "preference-option selected"
-                                            : "preference-option"
-                                    }
-                                >
-                                    <input
-                                        type="checkbox"
-                                        checked={formData.travel_preferences.includes(preference)}
-                                        onChange={() => handlePreferenceChange(preference)}
-                                    />
-                                    <span>{preference}</span>
-                                </label>
+                        <div className="form-group">
+                            <label>Phone Number</label>
+                            <input
+                                type="tel"
+                                name="phone"
+                                value={formData.phone}
+                                onChange={handleChange}
+                                placeholder="Enter contact phone number"
+                            />
+                        </div>
+
+                        <div className="form-group">
+                            <label>Date of Birth</label>
+                            <input
+                                type="date"
+                                name="date_of_birth"
+                                value={formData.date_of_birth}
+                                onChange={handleChange}
+                            />
+                        </div>
+                    </div>
+                </section>
+
+                {/* 02: TRAVEL PREFERENCES */}
+                <section className="profile-card">
+                    <div className="card-title">
+                        <span>02</span>
+                        <div>
+                            <h2>Travel Preferences</h2>
+                            <p>Select destination types and experiences you prefer</p>
+                        </div>
+                    </div>
+
+                    <div className="preference-grid">
+                        {preferenceOptions.map((preference) => (
+                            <label
+                                key={preference}
+                                className={
+                                    formData.travel_preferences.includes(preference)
+                                        ? "preference-option selected"
+                                        : "preference-option"
+                                }
+                            >
+                                <input
+                                    type="checkbox"
+                                    checked={formData.travel_preferences.includes(preference)}
+                                    onChange={() => handlePreferenceChange(preference)}
+                                />
+                                <span>{preference}</span>
+                            </label>
+                        ))}
+                    </div>
+                </section>
+
+                {/* 03: TRAVEL BUDGET & STYLE */}
+                <section className="profile-card">
+                    <div className="card-title">
+                        <span>03</span>
+                        <div>
+                            <h2>Travel Budget & Style</h2>
+                            <p>Set your travel budget range and preferred travel style</p>
+                        </div>
+                    </div>
+
+                    <div className="form-grid">
+                        <div className="form-group">
+                            <label>Travel Budget Range</label>
+                            <select
+                                name="budget_range"
+                                value={formData.budget_range}
+                                onChange={handleChange}
+                            >
+                                <option value="">Select budget range</option>
+                                <option value="Budget (Low)">Budget (Low)</option>
+                                <option value="Moderate (Medium)">Moderate (Medium)</option>
+                                <option value="Premium (High)">Premium (High)</option>
+                                <option value="Luxury">Luxury</option>
+                            </select>
+                        </div>
+
+                        <div className="form-group">
+                            <label>Travel Style</label>
+                            <select
+                                name="travel_style"
+                                value={formData.travel_style}
+                                onChange={handleChange}
+                            >
+                                <option value="">Select travel style</option>
+                                <option value="Relaxation">Relaxation</option>
+                                <option value="Adventure">Adventure</option>
+                                <option value="Family">Family</option>
+                                <option value="Solo">Solo</option>
+                                <option value="Cultural">Cultural</option>
+                                <option value="Nature">Nature</option>
+                                <option value="Luxury">Luxury</option>
+                            </select>
+                        </div>
+                    </div>
+                </section>
+
+                {/* 04: ADD PREVIOUS TRIPS */}
+                <section className="profile-card">
+                    <div className="card-title">
+                        <span>04</span>
+                        <div>
+                            <h2>Previous Trips History</h2>
+                            <p>Add and view your past travel experiences</p>
+                        </div>
+                    </div>
+
+                    {/* Add New Trip Inputs */}
+                    <div className="add-trip-box">
+                        <h4>+ Add a Previous Trip</h4>
+                        <div className="add-trip-grid">
+                            <input
+                                type="text"
+                                placeholder="Destination Name (e.g. Munnar)"
+                                value={newTrip.destination}
+                                onChange={(e) => setNewTrip({ ...newTrip, destination: e.target.value })}
+                            />
+                            <input
+                                type="text"
+                                placeholder="Year / Dates (e.g. 2025)"
+                                value={newTrip.year}
+                                onChange={(e) => setNewTrip({ ...newTrip, year: e.target.value })}
+                            />
+                            <input
+                                type="text"
+                                placeholder="Category (e.g. Hill Station, Beach)"
+                                value={newTrip.category}
+                                onChange={(e) => setNewTrip({ ...newTrip, category: e.target.value })}
+                            />
+                            <input
+                                type="text"
+                                placeholder="Notes / Review (Optional)"
+                                value={newTrip.notes}
+                                onChange={(e) => setNewTrip({ ...newTrip, notes: e.target.value })}
+                            />
+                        </div>
+                        <button
+                            type="button"
+                            className="btn-add-trip"
+                            onClick={handleAddTrip}
+                        >
+                            + Add Trip to Profile
+                        </button>
+                    </div>
+
+                    {/* Added Trips List */}
+                    {formData.previous_trips && formData.previous_trips.length > 0 ? (
+                        <div className="trips-history-list" style={{ marginTop: "16px" }}>
+                            {formData.previous_trips.map((trip, idx) => (
+                                <div key={trip.id || idx} className="trip-history-card">
+                                    <div className="trip-history-info">
+                                        <h4>🌴 {trip.destination}</h4>
+                                        <p>
+                                            📅 Year: <strong>{trip.year}</strong> | Tag: <span className="trip-cat-tag">{trip.category}</span>
+                                        </p>
+                                        {trip.notes && <p className="trip-notes-text">"{trip.notes}"</p>}
+                                    </div>
+                                    <button
+                                        type="button"
+                                        className="btn-remove-trip"
+                                        onClick={() => handleRemoveTrip(trip.id || idx)}
+                                        title="Remove trip"
+                                    >
+                                        🗑️ Remove
+                                    </button>
+                                </div>
                             ))}
                         </div>
-                    </section>
+                    ) : (
+                        <p className="no-trips-text">No previous trips added yet. Add your past destinations above!</p>
+                    )}
+                </section>
 
-                    {/* 03: TRAVEL BUDGET & STYLE */}
-                    <section className="profile-card">
-                        <div className="card-title">
-                            <span>03</span>
-                            <div>
-                                <h2>Travel Budget & Style</h2>
-                                <p>Set your travel budget range and preferred travel style</p>
-                            </div>
+                {/* 05: MY BOOKED TRIPS & ITINERARIES */}
+                <section className="profile-card">
+                    <div className="card-title" style={{ marginBottom: "16px" }}>
+                        <span>05</span>
+                        <div>
+                            <h2>My Booked Trips & Itineraries</h2>
+                            <p>Manage your active itineraries, check-in verification, and completed travel history</p>
                         </div>
+                    </div>
 
-                        <div className="form-grid">
-                            <div className="form-group">
-                                <label>Travel Budget Range</label>
-                                <select
-                                    name="budget_range"
-                                    value={formData.budget_range}
-                                    onChange={handleChange}
-                                >
-                                    <option value="">Select budget range</option>
-                                    <option value="Budget (Low)">Budget (Low)</option>
-                                    <option value="Moderate (Medium)">Moderate (Medium)</option>
-                                    <option value="Premium (High)">Premium (High)</option>
-                                    <option value="Luxury">Luxury</option>
-                                </select>
-                            </div>
+                    {/* SECTION TABS */}
+                    {(() => {
+                        const activeList = userBookings.filter((b) => b.booking_status !== "Completed");
+                        const completedList = userBookings.filter((b) => b.booking_status === "Completed");
 
-                            <div className="form-group">
-                                <label>Travel Style</label>
-                                <select
-                                    name="travel_style"
-                                    value={formData.travel_style}
-                                    onChange={handleChange}
-                                >
-                                    <option value="">Select travel style</option>
-                                    <option value="Relaxation">Relaxation</option>
-                                    <option value="Adventure">Adventure</option>
-                                    <option value="Family">Family</option>
-                                    <option value="Solo">Solo</option>
-                                    <option value="Cultural">Cultural</option>
-                                    <option value="Nature">Nature</option>
-                                    <option value="Luxury">Luxury</option>
-                                </select>
-                            </div>
-                        </div>
-                    </section>
+                        return (
+                            <>
+                                <div className="profile-trip-tabs">
+                                    <button
+                                        type="button"
+                                        className={`profile-trip-tab-btn ${bookingTab === "active" ? "active" : ""}`}
+                                        onClick={() => setBookingTab("active")}
+                                    >
+                                        ⚡ Active & Upcoming ({activeList.length})
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className={`profile-trip-tab-btn ${bookingTab === "completed" ? "active" : ""}`}
+                                        onClick={() => setBookingTab("completed")}
+                                    >
+                                        🎉 Completed Trips ({completedList.length})
+                                    </button>
+                                </div>
 
-                    {/* 04: ADD PREVIOUS TRIPS */}
-                    <section className="profile-card">
-                        <div className="card-title">
-                            <span>04</span>
-                            <div>
-                                <h2>Previous Trips History</h2>
-                                <p>Add and view your past travel experiences</p>
-                            </div>
-                        </div>
-
-                        {/* Add New Trip Inputs */}
-                        <div className="add-trip-box">
-                            <h4>+ Add a Previous Trip</h4>
-                            <div className="add-trip-grid">
-                                <input
-                                    type="text"
-                                    placeholder="Destination Name (e.g. Munnar)"
-                                    value={newTrip.destination}
-                                    onChange={(e) => setNewTrip({ ...newTrip, destination: e.target.value })}
-                                />
-                                <input
-                                    type="text"
-                                    placeholder="Year / Dates (e.g. 2025)"
-                                    value={newTrip.year}
-                                    onChange={(e) => setNewTrip({ ...newTrip, year: e.target.value })}
-                                />
-                                <input
-                                    type="text"
-                                    placeholder="Category (e.g. Hill Station, Beach)"
-                                    value={newTrip.category}
-                                    onChange={(e) => setNewTrip({ ...newTrip, category: e.target.value })}
-                                />
-                                <input
-                                    type="text"
-                                    placeholder="Notes / Review (Optional)"
-                                    value={newTrip.notes}
-                                    onChange={(e) => setNewTrip({ ...newTrip, notes: e.target.value })}
-                                />
-                            </div>
-                            <button
-                                type="button"
-                                className="btn-add-trip"
-                                onClick={handleAddTrip}
-                            >
-                                + Add Trip to Profile
-                            </button>
-                        </div>
-
-                        {/* Added Trips List */}
-                        {formData.previous_trips && formData.previous_trips.length > 0 ? (
-                            <div className="trips-history-list" style={{ marginTop: "16px" }}>
-                                {formData.previous_trips.map((trip, idx) => (
-                                    <div key={trip.id || idx} className="trip-history-card">
-                                        <div className="trip-history-info">
-                                            <h4>🌴 {trip.destination}</h4>
-                                            <p>
-                                                📅 Year: <strong>{trip.year}</strong> | Tag: <span className="trip-cat-tag">{trip.category}</span>
-                                            </p>
-                                            {trip.notes && <p className="trip-notes-text">"{trip.notes}"</p>}
-                                        </div>
-                                        <button
-                                            type="button"
-                                            className="btn-remove-trip"
-                                            onClick={() => handleRemoveTrip(trip.id || idx)}
-                                            title="Remove trip"
-                                        >
-                                            🗑️ Remove
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <p className="no-trips-text">No previous trips added yet. Add your past destinations above!</p>
-                        )}
-                    </section>
-
-                    {/* 05: MY BOOKED TRIPS & ITINERARIES */}
-                    <section className="profile-card">
-                        <div className="card-title" style={{ marginBottom: "16px" }}>
-                            <span>05</span>
-                            <div>
-                                <h2>My Booked Trips & Itineraries</h2>
-                                <p>Manage your active itineraries, check-in verification, and completed travel history</p>
-                            </div>
-                        </div>
-
-                        {/* SECTION TABS */}
-                        {(() => {
-                            const activeList = userBookings.filter((b) => b.booking_status !== "Completed");
-                            const completedList = userBookings.filter((b) => b.booking_status === "Completed");
-
-                            return (
-                                <>
-                                    <div className="profile-trip-tabs">
-                                        <button
-                                            type="button"
-                                            className={`profile-trip-tab-btn ${bookingTab === "active" ? "active" : ""}`}
-                                            onClick={() => setBookingTab("active")}
-                                        >
-                                            ⚡ Active & Upcoming ({activeList.length})
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className={`profile-trip-tab-btn ${bookingTab === "completed" ? "active" : ""}`}
-                                            onClick={() => setBookingTab("completed")}
-                                        >
-                                            🎉 Completed Trips ({completedList.length})
-                                        </button>
-                                    </div>
-
-                                    {bookingTab === "active" ? (
-                                        activeList.length > 0 ? (
-                                            <div className="bookings-list-container">
-                                                {activeList.map((b) => (
-                                                    <div key={b.booking_id} className="user-booking-card">
-                                                        <div className="booking-card-header">
-                                                            <div className="booking-header-left">
-                                                                <span className="booking-id-badge">
-                                                                    Booking #{b.booking_id}
+                                {bookingTab === "active" ? (
+                                    activeList.length > 0 ? (
+                                        <div className="bookings-list-container">
+                                            {activeList.map((b) => (
+                                                <div key={b.booking_id} className="user-booking-card">
+                                                    <div className="booking-card-header">
+                                                        <div className="booking-header-left">
+                                                            <span className="booking-id-badge">
+                                                                Booking #{b.booking_id}
+                                                            </span>
+                                                            <h3 className="booking-destination-title">
+                                                                📍 {b.destination?.name || "Kerala Trip Itinerary"}
+                                                            </h3>
+                                                            {(b.start_date || b.end_date) && (
+                                                                <span className="booking-dates-text">
+                                                                    📅 {b.start_date || "N/A"} to {b.end_date || "N/A"}
                                                                 </span>
-                                                                <h3 className="booking-destination-title">
-                                                                    📍 {b.destination?.name || "Kerala Trip Itinerary"}
-                                                                </h3>
-                                                                {(b.start_date || b.end_date) && (
-                                                                    <span className="booking-dates-text">
-                                                                        📅 {b.start_date || "N/A"} to {b.end_date || "N/A"}
-                                                                    </span>
-                                                                )}
+                                                            )}
+                                                        </div>
+                                                        <div className="booking-header-right">
+                                                            <div className="booking-price-tag">
+                                                                ₹{parseFloat(b.total_amount || 0).toLocaleString()}
                                                             </div>
-                                                            <div className="booking-header-right">
-                                                                <div className="booking-price-tag">
-                                                                    ₹{parseFloat(b.total_amount || 0).toLocaleString()}
-                                                                </div>
-                                                                <div style={{ display: "flex", gap: "6px", alignItems: "center", justifyContent: "flex-end", flexWrap: "wrap" }}>
-                                                                    <span
-                                                                        style={{
-                                                                            fontSize: "11px",
-                                                                            padding: "2px 8px",
-                                                                            borderRadius: "12px",
-                                                                            fontWeight: "600",
-                                                                            background: b.payment_method === "Online" ? "#e0f2fe" : "#f1f5f9",
-                                                                            color: b.payment_method === "Online" ? "#0369a1" : "#475569",
-                                                                            border: "1px solid",
-                                                                            borderColor: b.payment_method === "Online" ? "#bae6fd" : "#cbd5e1"
-                                                                        }}
-                                                                    >
-                                                                        {b.payment_method === "Online" ? "💳 Online" : "💵 Offline"}
-                                                                    </span>
-                                                                    <span
-                                                                        style={{
-                                                                            fontSize: "11px",
-                                                                            padding: "2px 8px",
-                                                                            borderRadius: "12px",
-                                                                            fontWeight: "600",
-                                                                            background: b.payment_status === "Completed" ? "#ecfdf5" : (b.payment_status === "Failed" ? "#fef2f2" : "#fffbeb"),
-                                                                            color: b.payment_status === "Completed" ? "#047857" : (b.payment_status === "Failed" ? "#b91c1c" : "#b45309"),
-                                                                            border: "1px solid",
-                                                                            borderColor: b.payment_status === "Completed" ? "#a7f3d0" : (b.payment_status === "Failed" ? "#fecaca" : "#fde68a")
-                                                                        }}
-                                                                    >
-                                                                        Payment: {b.payment_status || "Pending"}
-                                                                    </span>
-                                                                    <span className={`booking-status-pill ${(b.booking_status || "").toLowerCase()}`}>
-                                                                        {b.booking_status || "Confirmed"}
-                                                                    </span>
-                                                                </div>
+                                                            <div style={{ display: "flex", gap: "6px", alignItems: "center", justifyContent: "flex-end", flexWrap: "wrap" }}>
+                                                                <span
+                                                                    style={{
+                                                                        fontSize: "11px",
+                                                                        padding: "2px 8px",
+                                                                        borderRadius: "12px",
+                                                                        fontWeight: "600",
+                                                                        background: b.payment_method === "Online" ? "#e0f2fe" : "#f1f5f9",
+                                                                        color: b.payment_method === "Online" ? "#0369a1" : "#475569",
+                                                                        border: "1px solid",
+                                                                        borderColor: b.payment_method === "Online" ? "#bae6fd" : "#cbd5e1"
+                                                                    }}
+                                                                >
+                                                                    {b.payment_method === "Online" ? "💳 Online" : "💵 Offline"}
+                                                                </span>
+                                                                <span
+                                                                    style={{
+                                                                        fontSize: "11px",
+                                                                        padding: "2px 8px",
+                                                                        borderRadius: "12px",
+                                                                        fontWeight: "600",
+                                                                        background: b.payment_status === "Completed" ? "#ecfdf5" : (b.payment_status === "Failed" ? "#fef2f2" : "#fffbeb"),
+                                                                        color: b.payment_status === "Completed" ? "#047857" : (b.payment_status === "Failed" ? "#b91c1c" : "#b45309"),
+                                                                        border: "1px solid",
+                                                                        borderColor: b.payment_status === "Completed" ? "#a7f3d0" : (b.payment_status === "Failed" ? "#fecaca" : "#fde68a")
+                                                                    }}
+                                                                >
+                                                                    Payment: {b.payment_status || "Pending"}
+                                                                </span>
+                                                                <span className={`booking-status-pill ${(b.booking_status || "").toLowerCase()}`}>
+                                                                    {b.booking_status || "Confirmed"}
+                                                                </span>
                                                             </div>
                                                         </div>
+                                                    </div>
 
-                                                        <div className="booking-items-section">
-                                                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px", flexWrap: "wrap", gap: "8px" }}>
-                                                                <strong className="booking-items-label" style={{ margin: 0 }}>
-                                                                    Included Services ({b.items?.length || 0}):
-                                                                </strong>
+                                                    <div className="booking-items-section">
+                                                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px", flexWrap: "wrap", gap: "8px" }}>
+                                                            <strong className="booking-items-label" style={{ margin: 0 }}>
+                                                                Included Services ({b.items?.length || 0}):
+                                                            </strong>
+                                                            <button
+                                                                type="button"
+                                                                className="btn-download-booking-pdf"
+                                                                disabled={downloadingBookingId === b.booking_id}
+                                                                onClick={() => handleDownloadBookingPdf(b.booking_id)}
+                                                                title="Download complete booking PDF voucher and tax receipt"
+                                                            >
+                                                                {downloadingBookingId === b.booking_id ? "⏳ Generating..." : "📥 Download Booking PDF"}
+                                                            </button>
+                                                        </div>
+                                                        <div className="booking-items-list">
+                                                            {b.items?.map((item) => (
+                                                                <div
+                                                                    key={item.booking_item_id}
+                                                                    className="booking-item-row"
+                                                                >
+                                                                    <div className="booking-item-info">
+                                                                        <span className="booking-item-type-badge">
+                                                                            {item.service_type}
+                                                                        </span>
+                                                                        <span className="booking-item-name">{item.item_name}</span>
+
+                                                                        {/* OTP STATUS BADGE */}
+                                                                        {item.checkout_verified ? (
+                                                                            <span className="item-verify-pill completed">✓ Completed</span>
+                                                                        ) : item.checkin_verified ? (
+                                                                            <span className="item-verify-pill in-progress">⚡ In Progress</span>
+                                                                        ) : (
+                                                                            <span className="item-verify-pill pending" title="Check your confirmation email for the 6-digit Check-in OTP">🔑 OTP in Email</span>
+                                                                        )}
+                                                                    </div>
+                                                                    <span className="booking-item-price">
+                                                                        ₹{parseFloat(item.amount || 0).toLocaleString()}
+                                                                    </span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="no-bookings-box">
+                                            <p>No active trips right now.</p>
+                                            <button
+                                                type="button"
+                                                onClick={() => navigate("/destinations")}
+                                                className="btn-explore-trips"
+                                            >
+                                                Explore Destinations & Plan a Trip →
+                                            </button>
+                                        </div>
+                                    )
+                                ) : (
+                                    completedList.length > 0 ? (
+                                        <div className="bookings-list-container">
+                                            {completedList.map((b) => (
+                                                <div key={b.booking_id} className="user-booking-card card-trip-completed">
+                                                    <div className="booking-card-header">
+                                                        <div className="booking-header-left">
+                                                            <span className="booking-id-badge" style={{ background: "#047857" }}>
+                                                                Trip #{b.booking_id}
+                                                            </span>
+                                                            <h3 className="booking-destination-title">
+                                                                🌴 {b.destination?.name || "Kerala Trip"}
+                                                            </h3>
+                                                            {(b.start_date || b.end_date) && (
+                                                                <span className="booking-dates-text">
+                                                                    📅 {b.start_date || "N/A"} to {b.end_date || "N/A"}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <div className="booking-header-right">
+                                                            <div className="booking-price-tag">
+                                                                ₹{parseFloat(b.total_amount || 0).toLocaleString()}
+                                                            </div>
+                                                            <div style={{ display: "flex", gap: "6px", alignItems: "center", justifyContent: "flex-end", flexWrap: "wrap" }}>
+                                                                <span className="status-pill-badge completed">
+                                                                    ✓ Trip Completed
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="booking-items-section">
+                                                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px", flexWrap: "wrap", gap: "8px" }}>
+                                                            <strong className="booking-items-label" style={{ margin: 0, color: "#047857" }}>
+                                                                Completed Services ({b.items?.length || 0}):
+                                                            </strong>
+                                                            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                                                                <button
+                                                                    type="button"
+                                                                    className="btn-view-trip-details"
+                                                                    onClick={() => setSelectedCompletedTrip(b)}
+                                                                >
+                                                                    📜 View Trip Summary & Verification History
+                                                                </button>
                                                                 <button
                                                                     type="button"
                                                                     className="btn-download-booking-pdf"
@@ -663,322 +760,225 @@ export default function MyProfile() {
                                                                     onClick={() => handleDownloadBookingPdf(b.booking_id)}
                                                                     title="Download complete booking PDF voucher and tax receipt"
                                                                 >
-                                                                    {downloadingBookingId === b.booking_id ? "⏳ Generating..." : "📥 Download Booking PDF"}
+                                                                    {downloadingBookingId === b.booking_id ? "⏳..." : "📥 Receipt PDF"}
                                                                 </button>
                                                             </div>
-                                                            <div className="booking-items-list">
-                                                                {b.items?.map((item) => (
-                                                                    <div
-                                                                        key={item.booking_item_id}
-                                                                        className="booking-item-row"
-                                                                    >
-                                                                        <div className="booking-item-info">
-                                                                            <span className="booking-item-type-badge">
-                                                                                {item.service_type}
-                                                                            </span>
-                                                                            <span className="booking-item-name">{item.item_name}</span>
-                                                                            
-                                                                            {/* OTP STATUS BADGE */}
-                                                                            {item.checkout_verified ? (
-                                                                                <span className="item-verify-pill completed">✓ Completed</span>
-                                                                            ) : item.checkin_verified ? (
-                                                                                <span className="item-verify-pill in-progress">⚡ In Progress</span>
-                                                                            ) : (
-                                                                                <span className="item-verify-pill pending" title="Check your confirmation email for the 6-digit Check-in OTP">🔑 OTP in Email</span>
-                                                                            )}
-                                                                        </div>
-                                                                        <span className="booking-item-price">
-                                                                            ₹{parseFloat(item.amount || 0).toLocaleString()}
+                                                        </div>
+                                                        <div className="booking-items-list">
+                                                            {b.items?.map((item) => (
+                                                                <div
+                                                                    key={item.booking_item_id}
+                                                                    className="booking-item-row completed-item-row"
+                                                                >
+                                                                    <div className="booking-item-info">
+                                                                        <span className="booking-item-type-badge">
+                                                                            {item.service_type}
                                                                         </span>
+                                                                        <span className="booking-item-name">{item.item_name}</span>
+                                                                        <span className="item-verify-pill completed">✓ Verified & Checked Out</span>
                                                                     </div>
-                                                                ))}
-                                                            </div>
+                                                                    <span className="booking-item-price">
+                                                                        ₹{parseFloat(item.amount || 0).toLocaleString()}
+                                                                    </span>
+                                                                </div>
+                                                            ))}
                                                         </div>
                                                     </div>
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            <div className="no-bookings-box">
-                                                <p>No active trips right now.</p>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => navigate("/destinations")}
-                                                    className="btn-explore-trips"
-                                                >
-                                                    Explore Destinations & Plan a Trip →
-                                                </button>
-                                            </div>
-                                        )
+                                                </div>
+                                            ))}
+                                        </div>
                                     ) : (
-                                        completedList.length > 0 ? (
-                                            <div className="bookings-list-container">
-                                                {completedList.map((b) => (
-                                                    <div key={b.booking_id} className="user-booking-card card-trip-completed">
-                                                        <div className="booking-card-header">
-                                                            <div className="booking-header-left">
-                                                                <span className="booking-id-badge" style={{ background: "#047857" }}>
-                                                                    Trip #{b.booking_id}
-                                                                </span>
-                                                                <h3 className="booking-destination-title">
-                                                                    🌴 {b.destination?.name || "Kerala Trip"}
-                                                                </h3>
-                                                                {(b.start_date || b.end_date) && (
-                                                                    <span className="booking-dates-text">
-                                                                        📅 {b.start_date || "N/A"} to {b.end_date || "N/A"}
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                            <div className="booking-header-right">
-                                                                <div className="booking-price-tag">
-                                                                    ₹{parseFloat(b.total_amount || 0).toLocaleString()}
-                                                                </div>
-                                                                <div style={{ display: "flex", gap: "6px", alignItems: "center", justifyContent: "flex-end", flexWrap: "wrap" }}>
-                                                                    <span className="status-pill-badge completed">
-                                                                        ✓ Trip Completed
-                                                                    </span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
+                                        <div className="no-bookings-box">
+                                            <p>No completed trips recorded yet. Once you complete all services in a booking, your past trips will appear here.</p>
+                                        </div>
+                                    )
+                                )}
+                            </>
+                        );
+                    })()}
+                </section>
 
-                                                        <div className="booking-items-section">
-                                                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px", flexWrap: "wrap", gap: "8px" }}>
-                                                                <strong className="booking-items-label" style={{ margin: 0, color: "#047857" }}>
-                                                                    Completed Services ({b.items?.length || 0}):
-                                                                </strong>
-                                                                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                                                                    <button
-                                                                        type="button"
-                                                                        className="btn-view-trip-details"
-                                                                        onClick={() => setSelectedCompletedTrip(b)}
-                                                                    >
-                                                                        📜 View Trip Summary & Verification History
-                                                                    </button>
-                                                                    <button
-                                                                        type="button"
-                                                                        className="btn-download-booking-pdf"
-                                                                        disabled={downloadingBookingId === b.booking_id}
-                                                                        onClick={() => handleDownloadBookingPdf(b.booking_id)}
-                                                                        title="Download complete booking PDF voucher and tax receipt"
-                                                                    >
-                                                                        {downloadingBookingId === b.booking_id ? "⏳..." : "📥 Receipt PDF"}
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                            <div className="booking-items-list">
-                                                                {b.items?.map((item) => (
-                                                                    <div
-                                                                        key={item.booking_item_id}
-                                                                        className="booking-item-row completed-item-row"
-                                                                    >
-                                                                        <div className="booking-item-info">
-                                                                            <span className="booking-item-type-badge">
-                                                                                {item.service_type}
-                                                                            </span>
-                                                                            <span className="booking-item-name">{item.item_name}</span>
-                                                                            <span className="item-verify-pill completed">✓ Verified & Checked Out</span>
-                                                                        </div>
-                                                                        <span className="booking-item-price">
-                                                                            ₹{parseFloat(item.amount || 0).toLocaleString()}
-                                                                        </span>
-                                                                    </div>
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            <div className="no-bookings-box">
-                                                <p>No completed trips recorded yet. Once you complete all services in a booking, your past trips will appear here.</p>
-                                            </div>
-                                        )
-                                    )}
-                                </>
-                            );
-                        })()}
-                    </section>
+                {/* 06: PASSWORD CHANGING OPTION */}
+                <section className="profile-card">
+                    <div className="card-title" style={{ marginBottom: "12px" }}>
+                        <span>06</span>
+                        <div>
+                            <h2>Security & Password</h2>
+                            <p>Optionally update your login password</p>
+                        </div>
+                    </div>
 
-                    {/* 06: PASSWORD CHANGING OPTION */}
-                    <section className="profile-card">
-                        <div className="card-title" style={{ marginBottom: "12px" }}>
-                            <span>06</span>
+                    {!showPasswordChange ? (
+                        <button
+                            type="button"
+                            className="btn-toggle-password"
+                            onClick={() => setShowPasswordChange(true)}
+                        >
+                            🔒 Change Password
+                        </button>
+                    ) : (
+                        <div className="password-change-box">
+                            {passwordMessage && (
+                                <div className={passwordMessage.includes("successfully") ? "profile-message success" : "profile-message error"}>
+                                    {passwordMessage}
+                                </div>
+                            )}
+                            <div className="form-grid">
+                                <div className="form-group">
+                                    <label>Current Password</label>
+                                    <input
+                                        type="password"
+                                        name="current_password"
+                                        value={passwordData.current_password}
+                                        onChange={handlePasswordChangeInput}
+                                        required
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label>New Password</label>
+                                    <input
+                                        type="password"
+                                        name="new_password"
+                                        value={passwordData.new_password}
+                                        onChange={handlePasswordChangeInput}
+                                        required
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Confirm New Password</label>
+                                    <input
+                                        type="password"
+                                        name="confirm_password"
+                                        value={passwordData.confirm_password}
+                                        onChange={handlePasswordChangeInput}
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="password-actions">
+                                <button
+                                    type="button"
+                                    className="btn-cancel-pwd"
+                                    onClick={() => setShowPasswordChange(false)}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    className="btn-submit-pwd"
+                                    disabled={updatingPassword}
+                                    onClick={handlePasswordSubmit}
+                                >
+                                    {updatingPassword ? "Updating..." : "Update Password"}
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </section>
+
+                {/* SAVE PROFILE BUTTON */}
+                <div className="profile-actions">
+                    <button
+                        type="submit"
+                        disabled={saving}
+                        className="save-profile-btn"
+                    >
+                        {saving ? "Saving Changes..." : "Save Profile Changes"}
+                    </button>
+                </div>
+            </form>
+
+            {/* COMPLETED TRIP DETAILS MODAL */}
+            {selectedCompletedTrip && (
+                <div className="completed-trip-modal-backdrop" onClick={() => setSelectedCompletedTrip(null)}>
+                    <div className="completed-trip-modal-box" onClick={(e) => e.stopPropagation()}>
+                        <button className="completed-modal-close" onClick={() => setSelectedCompletedTrip(null)}>×</button>
+
+                        <div className="completed-modal-header">
+                            <div className="completed-icon-badge">✓</div>
                             <div>
-                                <h2>Security & Password</h2>
-                                <p>Optionally update your login password</p>
+                                <span className="completed-dest-sub">Completed Trip Itinerary</span>
+                                <h2>{selectedCompletedTrip.destination?.name || "Kerala Trip"}</h2>
+                                <p>Booking #{selectedCompletedTrip.booking_id} • Paid via {selectedCompletedTrip.payment_method || "Online"}</p>
                             </div>
                         </div>
 
-                        {!showPasswordChange ? (
+                        <div className="completed-modal-summary-grid">
+                            <div className="summary-item">
+                                <small>Total Trip Cost</small>
+                                <strong>₹{parseFloat(selectedCompletedTrip.total_amount || 0).toLocaleString()}</strong>
+                            </div>
+                            <div className="summary-item">
+                                <small>Payment Status</small>
+                                <strong style={{ color: "#047857" }}>{selectedCompletedTrip.payment_status || "Completed"}</strong>
+                            </div>
+                            <div className="summary-item">
+                                <small>Travel Dates</small>
+                                <strong>{selectedCompletedTrip.start_date || "N/A"} to {selectedCompletedTrip.end_date || "N/A"}</strong>
+                            </div>
+                            <div className="summary-item">
+                                <small>Overall Status</small>
+                                <strong style={{ color: "#047857" }}>✓ Completed</strong>
+                            </div>
+                        </div>
+
+                        <div className="completed-modal-services-list">
+                            <h4>Verified Services & Timestamps</h4>
+                            {selectedCompletedTrip.items?.map((item) => (
+                                <div key={item.booking_item_id} className="completed-service-card">
+                                    <div className="service-card-top">
+                                        <span className="booking-item-type-badge">{item.service_type}</span>
+                                        <h5>{item.item_name}</h5>
+                                        <strong className="service-cost">₹{parseFloat(item.amount || 0).toLocaleString()}</strong>
+                                    </div>
+
+                                    <div className="service-timestamps-grid">
+                                        <div className="timestamp-badge">
+                                            <small>🔑 Check-in Verified</small>
+                                            <span>
+                                                {item.checkin_verified_at
+                                                    ? new Date(item.checkin_verified_at).toLocaleString()
+                                                    : "Verified upon arrival"}
+                                            </span>
+                                        </div>
+                                        <div className="timestamp-badge">
+                                            <small>🏁 Checkout / Completion Verified</small>
+                                            <span>
+                                                {item.checkout_verified_at
+                                                    ? new Date(item.checkout_verified_at).toLocaleString()
+                                                    : "Verified upon departure"}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="completed-modal-footer">
                             <button
                                 type="button"
-                                className="btn-toggle-password"
-                                onClick={() => setShowPasswordChange(true)}
+                                className="btn-download-booking-pdf modal-download-btn"
+                                disabled={downloadingBookingId === selectedCompletedTrip.booking_id}
+                                onClick={() => handleDownloadBookingPdf(selectedCompletedTrip.booking_id)}
                             >
-                                🔒 Change Password
+                                {downloadingBookingId === selectedCompletedTrip.booking_id
+                                    ? "⏳ Generating Invoice..."
+                                    : "📥 Download Trip Invoice & Receipt (PDF)"}
                             </button>
-                        ) : (
-                            <div className="password-change-box">
-                                {passwordMessage && (
-                                    <div className={passwordMessage.includes("successfully") ? "profile-message success" : "profile-message error"}>
-                                        {passwordMessage}
-                                    </div>
-                                )}
-                                <div className="form-grid">
-                                    <div className="form-group">
-                                        <label>Current Password</label>
-                                        <input
-                                            type="password"
-                                            name="current_password"
-                                            value={passwordData.current_password}
-                                            onChange={handlePasswordChangeInput}
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="form-group">
-                                        <label>New Password</label>
-                                        <input
-                                            type="password"
-                                            name="new_password"
-                                            value={passwordData.new_password}
-                                            onChange={handlePasswordChangeInput}
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="form-group">
-                                        <label>Confirm New Password</label>
-                                        <input
-                                            type="password"
-                                            name="confirm_password"
-                                            value={passwordData.confirm_password}
-                                            onChange={handlePasswordChangeInput}
-                                            required
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="password-actions">
-                                    <button
-                                        type="button"
-                                        className="btn-cancel-pwd"
-                                        onClick={() => setShowPasswordChange(false)}
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="btn-submit-pwd"
-                                        disabled={updatingPassword}
-                                        onClick={handlePasswordSubmit}
-                                    >
-                                        {updatingPassword ? "Updating..." : "Update Password"}
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </section>
-
-                    {/* SAVE PROFILE BUTTON */}
-                    <div className="profile-actions">
-                        <button
-                            type="submit"
-                            disabled={saving}
-                            className="save-profile-btn"
-                        >
-                            {saving ? "Saving Changes..." : "Save Profile Changes"}
-                        </button>
-                    </div>
-                </form>
-
-                {/* COMPLETED TRIP DETAILS MODAL */}
-                {selectedCompletedTrip && (
-                    <div className="completed-trip-modal-backdrop" onClick={() => setSelectedCompletedTrip(null)}>
-                        <div className="completed-trip-modal-box" onClick={(e) => e.stopPropagation()}>
-                            <button className="completed-modal-close" onClick={() => setSelectedCompletedTrip(null)}>×</button>
-
-                            <div className="completed-modal-header">
-                                <div className="completed-icon-badge">✓</div>
-                                <div>
-                                    <span className="completed-dest-sub">Completed Trip Itinerary</span>
-                                    <h2>{selectedCompletedTrip.destination?.name || "Kerala Trip"}</h2>
-                                    <p>Booking #{selectedCompletedTrip.booking_id} • Paid via {selectedCompletedTrip.payment_method || "Online"}</p>
-                                </div>
-                            </div>
-
-                            <div className="completed-modal-summary-grid">
-                                <div className="summary-item">
-                                    <small>Total Trip Cost</small>
-                                    <strong>₹{parseFloat(selectedCompletedTrip.total_amount || 0).toLocaleString()}</strong>
-                                </div>
-                                <div className="summary-item">
-                                    <small>Payment Status</small>
-                                    <strong style={{ color: "#047857" }}>{selectedCompletedTrip.payment_status || "Completed"}</strong>
-                                </div>
-                                <div className="summary-item">
-                                    <small>Travel Dates</small>
-                                    <strong>{selectedCompletedTrip.start_date || "N/A"} to {selectedCompletedTrip.end_date || "N/A"}</strong>
-                                </div>
-                                <div className="summary-item">
-                                    <small>Overall Status</small>
-                                    <strong style={{ color: "#047857" }}>✓ Completed</strong>
-                                </div>
-                            </div>
-
-                            <div className="completed-modal-services-list">
-                                <h4>Verified Services & Timestamps</h4>
-                                {selectedCompletedTrip.items?.map((item) => (
-                                    <div key={item.booking_item_id} className="completed-service-card">
-                                        <div className="service-card-top">
-                                            <span className="booking-item-type-badge">{item.service_type}</span>
-                                            <h5>{item.item_name}</h5>
-                                            <strong className="service-cost">₹{parseFloat(item.amount || 0).toLocaleString()}</strong>
-                                        </div>
-
-                                        <div className="service-timestamps-grid">
-                                            <div className="timestamp-badge">
-                                                <small>🔑 Check-in Verified</small>
-                                                <span>
-                                                    {item.checkin_verified_at
-                                                        ? new Date(item.checkin_verified_at).toLocaleString()
-                                                        : "Verified upon arrival"}
-                                                </span>
-                                            </div>
-                                            <div className="timestamp-badge">
-                                                <small>🏁 Checkout / Completion Verified</small>
-                                                <span>
-                                                    {item.checkout_verified_at
-                                                        ? new Date(item.checkout_verified_at).toLocaleString()
-                                                        : "Verified upon departure"}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div className="completed-modal-footer">
-                                <button
-                                    type="button"
-                                    className="btn-download-booking-pdf modal-download-btn"
-                                    disabled={downloadingBookingId === selectedCompletedTrip.booking_id}
-                                    onClick={() => handleDownloadBookingPdf(selectedCompletedTrip.booking_id)}
-                                >
-                                    {downloadingBookingId === selectedCompletedTrip.booking_id
-                                        ? "⏳ Generating Invoice..."
-                                        : "📥 Download Trip Invoice & Receipt (PDF)"}
-                                </button>
-                                <button
-                                    type="button"
-                                    className="btn-modal-close-gray"
-                                    onClick={() => setSelectedCompletedTrip(null)}
-                                >
-                                    Close
-                                </button>
-                            </div>
+                            <button
+                                type="button"
+                                className="btn-modal-close-gray"
+                                onClick={() => setSelectedCompletedTrip(null)}
+                            >
+                                Close
+                            </button>
                         </div>
                     </div>
-                )}
-            </main>
+                </div>
+            )}
+        </main>
     );
 }
