@@ -141,9 +141,8 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 FRONTEND_DIST = BASE_DIR.parent / "frontend" / "dist"
 
 STATICFILES_DIRS = [
-    FRONTEND_DIST / "assets",
+    FRONTEND_DIST,
 ]
-
 CORS_ALLOWED_ORIGINS = [
 
 "http://localhost:5173",

@@ -5,6 +5,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from tourism import views
 
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/tourist-register/", views.tourist_register),
@@ -146,4 +147,13 @@ urlpatterns += [
 ]
 urlpatterns += [
     path("", TemplateView.as_view(template_name="index.html"), name="frontend"),
+]
+urlpatterns += [
+    path(
+        "static/<path:path>",
+        django_static_serve,
+        {
+            "document_root": settings.STATIC_ROOT,
+        },
+    ),
 ]
