@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Navbar from "../Components/Navbar";
 import HiddenSpotSubmitModal from "../Components/HiddenSpotSubmitModal";
-import api from "../services/api";
+import api from "../Services/Api";
 import "../styles/HiddenSpots.css";
 
 /**

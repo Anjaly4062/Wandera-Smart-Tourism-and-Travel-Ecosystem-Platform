@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminNavbar from "../Components/AdminNavbar";
-import api from "../services/api";
+import api from "../Services/Api";
 import "../styles/AdminProviderRequest.css";
 
 export default function AdminTourists() {

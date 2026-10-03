@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import ServiceProviderNavbar from "../Components/ServiceProviderNavbar";
 import MapPicker from "../Components/MapPicker";
 import "../styles/AddRestaurant.css";
-import api from "../services/api";
+import api from "../Services/Api";
 
 export default function AddRestaurant() {
     const navigate = useNavigate();

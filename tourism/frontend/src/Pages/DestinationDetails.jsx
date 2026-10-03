@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import api from "../services/api";
+import api from "../Services/Api";
 import Navbar from "../Components/Navbar";
 import DestinationMapView, { calculateHaversineDistance } from "../Components/DestinationMapView";
 import "../styles/DestinationDetails.css";

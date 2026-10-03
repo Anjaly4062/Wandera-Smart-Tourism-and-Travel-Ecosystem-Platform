@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import ServiceProviderNavbar from "../Components/ServiceProviderNavbar";
-import api from "../services/api";
+import api from "../Services/Api";
 import "../styles/ServiceProviderProfile.css";
 
 export default function ServiceProviderProfile() {

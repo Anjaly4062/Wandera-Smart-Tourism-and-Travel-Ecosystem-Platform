@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import api from "../services/api";
+import api from "../Services/Api";
 import MapPicker from "../Components/MapPicker";
 import "../styles/EditHotelModal.css";
 

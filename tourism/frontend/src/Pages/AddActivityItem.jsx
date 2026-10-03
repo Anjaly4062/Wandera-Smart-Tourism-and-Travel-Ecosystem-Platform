@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import ServiceProviderNavbar from "../Components/ServiceProviderNavbar";
 import "../styles/AddActivityItem.css";
-import api from "../services/api";
+import api from "../Services/Api";
 
 export default function AddActivityItem() {
     const navigate = useNavigate();

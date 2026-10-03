@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import AdminNavbar from "../Components/AdminNavbar";
-import api from "../services/api";
+import api from "../Services/Api";
 import "../styles/AdminHiddenSpots.css";
 import "../styles/AdminHome.css";
 import "../styles/AdminProviderRequest.css";

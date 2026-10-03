@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import AdminNavbar from "../Components/AdminNavbar";
-import api from "../services/api";
+import api from "../Services/Api";
 import "../styles/AdminBookings.css";
 import "../styles/AdminHome.css";
 import "../styles/AdminProviderRequest.css";

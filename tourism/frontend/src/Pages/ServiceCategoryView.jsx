@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import api from "../services/api";
+import api from "../Services/Api";
 import Navbar from "../Components/Navbar";
 import "../styles/ServicesView.css";
 

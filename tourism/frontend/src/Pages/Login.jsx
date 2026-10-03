@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import api from "../services/api";
+import api from "../Services/Api";
 import "../styles/Login.css";
 
 

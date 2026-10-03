@@ -8,7 +8,7 @@ import EditTransportationModal from "../Components/EditTransportationModal";
 import EditActivityModal from "../Components/EditActivityModal";
 import EditVehicleModal from "../Components/EditVehicleModal";
 import EditActivityItemModal from "../Components/EditActivityItemModal";
-import api from "../services/api";
+import api from "../Services/Api";
 import "../styles/MyServices.css";
 
 export default function MyServices() {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ServiceProviderNavbar from "../Components/ServiceProviderNavbar";
-import api from "../services/api";
+import api from "../Services/Api";
 import "../styles/ProviderBookings.css";
 
 export default function ProviderBookings() {

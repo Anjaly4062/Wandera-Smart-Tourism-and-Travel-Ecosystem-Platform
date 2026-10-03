@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import MapPicker from "./MapPicker";
-import api from "../services/api";
+import api from "../Services/Api";
 
 const PLACE_TYPES = [
     "Waterfall",

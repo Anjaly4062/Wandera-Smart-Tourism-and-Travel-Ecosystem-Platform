@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ServiceProviderNavbar from "../Components/ServiceProviderNavbar";
-import api from "../services/api";
+import api from "../Services/Api";
 
 export default function AddService() {
     const navigate = useNavigate();

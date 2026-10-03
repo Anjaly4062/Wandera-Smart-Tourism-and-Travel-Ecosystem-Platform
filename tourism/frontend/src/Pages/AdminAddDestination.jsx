@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import AdminNavbar from "../Components/AdminNavbar";
 import MapPicker from "../Components/MapPicker";
 import EditDestinationModal from "../Components/EditDestinationModal";
-import api from "../services/api";
+import api from "../Services/Api";
 import "../styles/AdminAddDestination.css";
 
 export default function AdminAddDestination() {
