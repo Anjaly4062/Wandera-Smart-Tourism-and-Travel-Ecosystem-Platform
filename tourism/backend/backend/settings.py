@@ -136,10 +136,12 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
 FRONTEND_DIST = BASE_DIR.parent / "frontend" / "dist"
 
 STATICFILES_DIRS = [
-    FRONTEND_DIST,
+    FRONTEND_DIST / "assets",
 ]
 
 CORS_ALLOWED_ORIGINS = [
