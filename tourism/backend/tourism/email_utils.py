@@ -206,9 +206,7 @@ https://wandera.com
 
         # 5. Send Email
         print(f"[EMAIL] Sending confirmation email to: {recipient_email}...")
-        mailResponse = msg.send(fail_silently=False)
-        logger.error(f"Error generating PDF for email attachment (Booking #{booking.booking_id}): {pdf_err}")
-
+        msg.send(fail_silently=False)
         print(f"[SUCCESS] Email sent successfully to: {recipient_email}")
         logger.info(f"Booking confirmation email sent successfully to {recipient_email} for Booking #{booking.booking_id}")
         return True
