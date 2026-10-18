@@ -21,7 +21,7 @@ import AddActivityItem from "./Pages/AddActivityItem";
 import MyServices from "./Pages/MyServices";
 import MyProfile from "./Pages/MyProfile";
 import ServiceProviderProfile from "./Pages/ServiceProviderProfile";
-import DestinationDetails  from "./Pages/DestinationDetails";
+import DestinationDetails from "./Pages/DestinationDetails";
 import ServiceDetails from "./Pages/ServiceDetails";
 import PlanTrip from "./Pages/PlanTrip";
 import ProviderBookings from "./Pages/ProviderBookings";
@@ -42,8 +42,8 @@ function App() {
       <Routes>
 
         <Route path="/" element={<Home />} />
-        
-        <Route path="/signup" element={<Register/>}/>
+
+        <Route path="/signup" element={<Register />} />
 
         <Route path="/login" element={<Login />} />
         <Route path="/admin" element={<AdminHome />} />
@@ -51,33 +51,33 @@ function App() {
         <Route path="/admin/service-providers" element={<AdminServiceProviders />} />
         <Route path="/admin/bookings" element={<AdminBookings />} />
         <Route path="/admin/hidden-spots" element={<AdminHiddenSpots />} />
-        <Route path="/admin/provider-request" element={<AdminProviderRequest />}/>
-        <Route path="/admin/destinations-services" element={<AdminDestinationsServices />}/>
+        <Route path="/admin/provider-request" element={<AdminProviderRequest />} />
+        <Route path="/admin/destinations-services" element={<AdminDestinationsServices />} />
         <Route path="/my-profile" element={<MyProfile />} />
         <Route path="/provider-home" element={<ServiceProviderHome />} />
         <Route path="/provider/profile" element={<ServiceProviderProfile />} />
-        <Route path="/admin/add-destination" element={<AdminAddDestination />}/>
-        <Route path="/destinations" element={<ViewDestination />}/>
-        <Route path="/hotels" element={<Hotels />}/>
-        <Route path="/transportation" element={<Transportation />}/>
-        <Route path="/restaurants" element={<Restaurants />}/>
-        <Route path="/activities" element={<Activities />}/>
-        <Route path="/hidden-spots" element={<HiddenSpots />}/>
-        <Route path="/submit-hidden-spot" element={<SubmitHiddenSpot />}/>
-        <Route path="/provider/add-service" element={<AddService/>}/>
-        <Route path="/provider/add-hotel" element={<AddHotel/>}/>
-        <Route path="/provider/add-room" element={<AddRoom/>}/>
-        <Route path="/provider/add-restaurant" element={<AddRestaurant/>}/>
-        <Route path="/provider/add-transportation" element={<AddTransportation/>}/>
-        <Route path="/provider/add-vehicle" element={<AddVehicle/>}/>
-        <Route path="/provider/add-activity" element={<AddActivity/>}/>
-        <Route path="/provider/add-activity-item" element={<AddActivityItem/>}/>
-        <Route path="/provider/my-services" element={<MyServices/>}/>
-        <Route path="/provider/bookings" element={<ProviderBookings />}/>
-        <Route path="/view/:destinationId" element={<DestinationDetails />}/>
-        <Route path="/service/:providerId" element={<ServiceDetails />}/>
-        <Route path="/plan-your-trip" element={<PlanTrip />}/>
-        <Route path="/my-trip" element={<PlanTrip />}/>
+        <Route path="/admin/add-destination" element={<AdminAddDestination />} />
+        <Route path="/destinations" element={<ViewDestination />} />
+        <Route path="/hotels" element={<Hotels />} />
+        <Route path="/transportation" element={<Transportation />} />
+        <Route path="/restaurants" element={<Restaurants />} />
+        <Route path="/activities" element={<Activities />} />
+        <Route path="/hidden-spots" element={<HiddenSpots />} />
+        <Route path="/submit-hidden-spot" element={<SubmitHiddenSpot />} />
+        <Route path="/provider/add-service" element={<AddService />} />
+        <Route path="/provider/add-hotel" element={<AddHotel />} />
+        <Route path="/provider/add-room" element={<AddRoom />} />
+        <Route path="/provider/add-restaurant" element={<AddRestaurant />} />
+        <Route path="/provider/add-transportation" element={<AddTransportation />} />
+        <Route path="/provider/add-vehicle" element={<AddVehicle />} />
+        <Route path="/provider/add-activity" element={<AddActivity />} />
+        <Route path="/provider/add-activity-item" element={<AddActivityItem />} />
+        <Route path="/provider/my-services" element={<MyServices />} />
+        <Route path="/provider/bookings" element={<ProviderBookings />} />
+        <Route path="/view/:destinationId" element={<DestinationDetails />} />
+        <Route path="/service/:providerId" element={<ServiceDetails />} />
+        <Route path="/plan-your-trip" element={<PlanTrip />} />
+        <Route path="/my-trip" element={<PlanTrip />} />
 
       </Routes>
 
