@@ -3670,14 +3670,31 @@ def ai_recommendations(request):
         dest_ids = [r["destination_id"] for r in raw_recommendations]
         dest_map = {d.destination_id: d for d in Destination.objects.filter(destination_id__in=dest_ids)}
 
-        sps = list(ServiceProvider.objects.filter(destination_id__in=dest_ids).select_related(
-            "hotel", "restaurant", "transportation", "activity"
-        ).prefetch_related(
-            "hotel__images", "hotel__facilities", "hotel__rooms__images",
-            "restaurant__images", "restaurant__facilities",
-            "transportation__images", "transportation__vehicles",
-            "activity__images", "activity__items"
-        ))
+                
+        sps = list(
+            ServiceProvider.objects.filter(
+                destination_id__in=dest_ids
+            ).select_related(
+                "destination",
+                "hotel",
+                "restaurant",
+                "transportation",
+                "activity",
+            ).prefetch_related(
+                "hotel__images",
+                "hotel__facilities",
+                "hotel__rooms",
+                "hotel__rooms__images",
+                "restaurant__images",
+                "restaurant__facilities",
+                "transportation__images",
+                "transportation__vehicles",
+                "transportation__vehicles__images",
+                "activity__images",
+                "activity__items",
+                "activity__items__images",
+            )
+        )
 
         formatted_recommendations = []
         for rec in raw_recommendations:
