@@ -410,6 +410,35 @@ export default function DestinationDetails() {
                         near this destination.
                     </p>
 
+                    <div style={{ marginTop: "14px" }}>
+                        <button
+                            type="button"
+                            style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "8px",
+                                background: "linear-gradient(135deg, #059669 0%, #10b981 100%)",
+                                color: "#ffffff",
+                                padding: "10px 20px",
+                                borderRadius: "8px",
+                                fontSize: "14px",
+                                fontWeight: "600",
+                                border: "none",
+                                cursor: "pointer",
+                                boxShadow: "0 4px 14px rgba(16, 185, 129, 0.35)",
+                                transition: "all 0.2s ease"
+                            }}
+                            onClick={() => navigate("/recommend-itinerary", {
+                                state: {
+                                    destination_id: destination.destination_id,
+                                    destination_name: destination.name
+                                }
+                            })}
+                        >
+                            <span>✨ Recommend Itinerary for {destination.name}</span>
+                        </button>
+                    </div>
+
                 </div>
 
 

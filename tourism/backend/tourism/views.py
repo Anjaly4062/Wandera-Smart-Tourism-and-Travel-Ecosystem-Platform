@@ -14,8 +14,10 @@ import razorpay
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 import secrets
-from .pdf_utils import generate_booking_pdf
+import re
+from .pdf_utils import generate_booking_pdf, generate_itinerary_pdf
 from .email_utils import send_booking_confirmation_email, send_service_checkout_otp_email
+from .itinerary_recommender import generate_itinerary_recommendation
 from .models import (
     Hotel, HotelFacility, HotelImage, Room, RoomImage, TouristProfile, User,
     ServiceProviderRequest, ServiceProvider, Destination,
@@ -23,7 +25,7 @@ from .models import (
     Transportation, TransportationImage, Vehicle, VehicleImage,
     Activity, ActivityImage, ActivityItem, ActivityItemImage,
     TripCart, TripCartItem, Booking, BookingItem,
-    HiddenSpot, HiddenSpotImage
+    HiddenSpot, HiddenSpotImage, Itinerary
 )
 from .Serializers import (
     ServiceProviderSerializer, TouristProfileSerializer, UserSerializer,
@@ -33,7 +35,7 @@ from .Serializers import (
     TransportationSerializer, TransportationImageSerializer, VehicleSerializer, VehicleImageSerializer,
     ActivitySerializer, ActivityImageSerializer, ActivityItemSerializer, ActivityItemImageSerializer,
     TripCartSerializer, TripCartItemSerializer, BookingSerializer, BookingItemSerializer,
-    HiddenSpotSerializer, HiddenSpotImageSerializer
+    HiddenSpotSerializer, HiddenSpotImageSerializer, ItinerarySerializer
 )
 
 @api_view(['POST'])
@@ -3737,6 +3739,488 @@ def ai_recommendations(request):
             },
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+
+# =========================================================================
+# SHARED ITINERARIES VIEWS
+# =========================================================================
+
+@api_view(["GET"])
+def get_shared_itineraries(request):
+    """
+    Public endpoint to list all published shared itineraries.
+    Accessible without logging in.
+    """
+    try:
+        itineraries = Itinerary.objects.filter(is_published=True).select_related("user").order_by("-created_at")
+        serializer = ItinerarySerializer(itineraries, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({"error": f"Failed to retrieve itineraries: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(["GET"])
+def get_itinerary_details(request, itinerary_id):
+    """
+    Public endpoint to view complete details of a published itinerary.
+    """
+    try:
+        itinerary = get_object_or_404(Itinerary, itinerary_id=itinerary_id, is_published=True)
+        serializer = ItinerarySerializer(itinerary)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({"error": f"Itinerary not found: {str(e)}"}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(["POST"])
+def create_itinerary(request):
+    """
+    Endpoint for logged-in users to share and publish a completed itinerary.
+    Calculates total trip cost from entered expense categories and avoids double-counting.
+    """
+    try:
+        user_id = request.data.get("user_id")
+        if not user_id:
+            return Response(
+                {"error": "User authentication required. Please login first."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        try:
+            user = User.objects.get(user_id=user_id)
+        except User.DoesNotExist:
+            return Response(
+                {"error": "User not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        title = str(request.data.get("title", "")).strip()
+        destination = str(request.data.get("destination", "")).strip()
+        number_of_days = request.data.get("number_of_days")
+        description = str(request.data.get("description", "")).strip()
+        hotel_name = str(request.data.get("hotel_name", "")).strip()
+        transportation_type = str(request.data.get("transportation_type", "")).strip()
+        activities = str(request.data.get("activities", "")).strip()
+        travel_tips = str(request.data.get("travel_tips", "")).strip()
+
+        # Validation
+        if not title:
+            return Response({"error": "Itinerary title is required."}, status=status.HTTP_400_BAD_REQUEST)
+        if not destination:
+            return Response({"error": "Destination is required."}, status=status.HTTP_400_BAD_REQUEST)
+        if not number_of_days:
+            return Response({"error": "Number of days is required."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            number_of_days = int(number_of_days)
+            if number_of_days < 1:
+                return Response({"error": "Number of days must be at least 1."}, status=status.HTTP_400_BAD_REQUEST)
+        except (ValueError, TypeError):
+            return Response({"error": "Number of days must be a valid whole number."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not description:
+            return Response({"error": "Travel experience description is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Parse user-entered costs
+        try:
+            accommodation_cost = max(0.0, float(request.data.get("accommodation_cost") or 0))
+        except (ValueError, TypeError):
+            accommodation_cost = 0.0
+
+        try:
+            transportation_cost = max(0.0, float(request.data.get("transportation_cost") or 0))
+        except (ValueError, TypeError):
+            transportation_cost = 0.0
+
+        try:
+            food_cost = max(0.0, float(request.data.get("food_cost") or 0))
+        except (ValueError, TypeError):
+            food_cost = 0.0
+
+        try:
+            other_cost = max(0.0, float(request.data.get("other_cost") or 0))
+        except (ValueError, TypeError):
+            other_cost = 0.0
+
+        # Calculate total trip cost directly from the 4 expense categories without double counting
+        total_cost = round(accommodation_cost + transportation_cost + food_cost + other_cost, 2)
+
+        itinerary = Itinerary.objects.create(
+            user=user,
+            title=title,
+            destination=destination,
+            number_of_days=number_of_days,
+            description=description,
+            hotel_name=hotel_name,
+            accommodation_cost=accommodation_cost,
+            transportation_type=transportation_type,
+            transportation_cost=transportation_cost,
+            activities=activities,
+            food_cost=food_cost,
+            other_cost=other_cost,
+            total_cost=total_cost,
+            travel_tips=travel_tips,
+            is_published=True
+        )
+
+        serializer = ItinerarySerializer(itinerary)
+        return Response(
+            {
+                "message": "Itinerary published successfully!",
+                "itinerary": serializer.data
+            },
+            status=status.HTTP_201_CREATED
+        )
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(["GET"])
+def download_itinerary_pdf(request, itinerary_id):
+    """
+    Generates and returns the detailed itinerary PDF for download.
+    Publicly accessible for published itineraries.
+    If unpublished, only the itinerary creator or an admin can download it.
+    Returns the PDF file attachment with a sanitized filename based on the itinerary title.
+    """
+    try:
+        try:
+            itinerary = Itinerary.objects.select_related("user").get(itinerary_id=itinerary_id)
+        except Itinerary.DoesNotExist:
+            return Response(
+                {"error": f"Itinerary #{itinerary_id} not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Access check: If unpublished, verify user ownership or admin privilege
+        if not itinerary.is_published:
+            req_user_id = request.GET.get("user_id")
+            if not req_user_id:
+                return Response(
+                    {"error": "This itinerary is private or unpublished. Authentication required."},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            try:
+                user_id_int = int(req_user_id)
+                if itinerary.user_id != user_id_int:
+                    try:
+                        requesting_user = User.objects.get(user_id=user_id_int)
+                        if requesting_user.role != "admin":
+                            return Response(
+                                {"error": "You are not authorized to download this unpublished itinerary."},
+                                status=status.HTTP_403_FORBIDDEN
+                            )
+                    except User.DoesNotExist:
+                        return Response({"error": "Unauthorized access."}, status=status.HTTP_403_FORBIDDEN)
+            except (ValueError, TypeError):
+                return Response({"error": "Invalid user identification."}, status=status.HTTP_400_BAD_REQUEST)
+
+        pdf_buffer = generate_itinerary_pdf(itinerary)
+
+        # Sanitize filename based on itinerary title
+        raw_title = itinerary.title or f"Itinerary_{itinerary.itinerary_id}"
+        safe_title = re.sub(r'[^\w\s\-]', '', raw_title).strip()
+        safe_title = re.sub(r'[\s_]+', '_', safe_title)
+        if not safe_title:
+            safe_title = f"Itinerary_{itinerary.itinerary_id}"
+        safe_title = safe_title[:50]
+        filename = f"Wandera_Itinerary_{safe_title}.pdf"
+
+        response = HttpResponse(pdf_buffer.getvalue(), content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        response["Access-Control-Expose-Headers"] = "Content-Disposition"
+        return response
+
+    except Exception as e:
+        print("ERROR IN DOWNLOAD ITINERARY PDF:", str(e))
+        return Response(
+            {"error": f"Failed to generate itinerary PDF: {str(e)}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(["POST"])
+def recommend_itinerary(request):
+    """
+    AI-powered personalized itinerary recommendation endpoint.
+    Accepts tourist preferences (destination, duration, budget, travel style, travellers, start date)
+    and generates an optimized day-by-day plan using verified database services and actual prices.
+    """
+    try:
+        data = request.data or {}
+        dest_input = data.get("destination_id") or data.get("destination") or data.get("destination_name")
+        if not dest_input:
+            return Response(
+                {"success": False, "error": "Destination is required. Please choose a travel destination."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Lookup destination by ID or Name
+        dest_obj = None
+        try:
+            dest_id_int = int(dest_input)
+            dest_obj = Destination.objects.filter(destination_id=dest_id_int, status="Active").first()
+        except (ValueError, TypeError):
+            cleaned = str(dest_input).strip()
+            # 1. Exact match (case-insensitive)
+            dest_obj = Destination.objects.filter(name__iexact=cleaned, status="Active").first()
+            # 2. Contains match (e.g., 'Kochi' matching 'Fort Kochi')
+            if not dest_obj:
+                dest_obj = Destination.objects.filter(name__icontains=cleaned, status="Active").first()
+            # 3. Reverse match (e.g., 'Munnar Hills' matching 'Munnar')
+            if not dest_obj:
+                for d in Destination.objects.filter(status="Active"):
+                    if d.name.lower() in cleaned.lower():
+                        dest_obj = d
+                        break
+
+        if not dest_obj:
+            sample_dests = list(Destination.objects.filter(status="Active").values_list("name", flat=True)[:6])
+            samples_text = ", ".join(sample_dests)
+            return Response(
+                {"success": False, "error": f"Destination '{dest_input}' not found. Available destinations include: {samples_text}."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Validate duration
+        try:
+            days = int(data.get("days", 3))
+            if days < 1 or days > 14:
+                return Response(
+                    {"success": False, "error": "Trip duration must be between 1 and 14 days."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        except (ValueError, TypeError):
+            return Response(
+                {"success": False, "error": "Number of days must be a valid whole number."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Validate budget
+        try:
+            budget = float(data.get("budget", 25000))
+            if budget <= 0:
+                return Response(
+                    {"success": False, "error": "Total budget must be a positive amount."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        except (ValueError, TypeError):
+            return Response(
+                {"success": False, "error": "Budget must be a valid numeric amount in INR."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Validate travellers
+        try:
+            traveller_raw = data.get("travellers")
+            if traveller_raw is None or str(traveller_raw).strip() == "":
+                travellers = 2
+            else:
+                travellers = int(traveller_raw)
+                if travellers < 1:
+                    return Response(
+                        {"success": False, "error": "Number of travellers must be a positive integer."},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                if travellers > 50:
+                    return Response(
+                        {"success": False, "error": "Number of travellers cannot exceed 50."},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+        except (ValueError, TypeError):
+            return Response(
+                {"success": False, "error": "Number of travellers must be a valid positive integer."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Assign travel style based on traveller count if not explicitly supplied
+        if not data.get("travel_style"):
+            travel_style = "Solo" if travellers == 1 else "Couple" if travellers == 2 else "Family"
+        else:
+            travel_style = str(data.get("travel_style")).strip().capitalize()
+            valid_styles = ["Family", "Solo", "Couple", "Friends"]
+            if travel_style not in valid_styles:
+                travel_style = "Solo" if travellers == 1 else "Couple" if travellers == 2 else "Family"
+
+        start_date = data.get("start_date")
+
+        # Generate recommendation
+        result = generate_itinerary_recommendation(
+            destination_id=dest_obj.destination_id,
+            days=days,
+            budget=budget,
+            travel_style=travel_style,
+            travellers=travellers,
+            start_date=start_date
+        )
+
+        if not result.get("success"):
+            return Response(result, status=status.HTTP_404_NOT_FOUND if "not found" in result.get("error", "").lower() else status.HTTP_200_OK)
+
+        return Response(result, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        print("ERROR IN RECOMMEND ITINERARY:", str(e))
+        return Response(
+            {"success": False, "error": f"Failed to generate itinerary recommendation: {str(e)}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(["POST"])
+def batch_add_itinerary_to_cart(request):
+    """
+    Adds recommended itinerary services (Hotel, Vehicle, Activities) to the user's active TripCart.
+    Pre-populates booking details with dates, traveller counts, and room counts so the tourist
+    can seamlessly review availability and complete checkout on the PlanTrip page.
+    """
+    try:
+        user_id = request.data.get("user_id")
+        if not user_id:
+            return Response({"error": "User authentication required. Please login."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            user = User.objects.get(user_id=user_id)
+        except User.DoesNotExist:
+            return Response({"error": "User account not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        destination_id = request.data.get("destination_id")
+        start_date = request.data.get("start_date")
+        end_date = request.data.get("end_date")
+        travellers = int(request.data.get("travellers", 2) or 2)
+        rooms_count = int(request.data.get("rooms_count", 1) or 1)
+
+        hotel_data = request.data.get("hotel")
+        hotel_room_id = request.data.get("hotel_room_id")
+        if not hotel_data and hotel_room_id:
+            room_obj = Room.objects.filter(room_id=hotel_room_id).select_related("hotel__service_provider").first()
+            if room_obj and room_obj.hotel and room_obj.hotel.service_provider:
+                hotel_data = {
+                    "provider_id": room_obj.hotel.service_provider.provider_id,
+                    "room_id": room_obj.room_id,
+                }
+
+        transport_data = request.data.get("transportation")
+        transport_vehicle_id = request.data.get("transport_vehicle_id")
+        if not transport_data and transport_vehicle_id:
+            veh_obj = Vehicle.objects.filter(vehicle_id=transport_vehicle_id).select_related("transportation__service_provider").first()
+            if veh_obj and veh_obj.transportation and veh_obj.transportation.service_provider:
+                transport_data = {
+                    "provider_id": veh_obj.transportation.service_provider.provider_id,
+                    "vehicle_id": veh_obj.vehicle_id,
+                }
+
+        activities_data = request.data.get("activities", [])
+        activity_item_ids = request.data.get("activity_item_ids", [])
+        if not activities_data and activity_item_ids:
+            items = ActivityItem.objects.filter(item_id__in=activity_item_ids).select_related("activity__service_provider")
+            activities_data = [
+                {"provider_id": itm.activity.service_provider.provider_id, "item_id": itm.item_id}
+                for itm in items if itm.activity and itm.activity.service_provider
+            ]
+
+        # Get or create active trip cart
+        cart, _ = TripCart.objects.get_or_create(user=user)
+
+        # Clear existing if requested (default True for fresh itinerary booking)
+        if request.data.get("clear_existing", True):
+            cart.items.all().delete()
+
+        if destination_id:
+            try:
+                dest = Destination.objects.get(destination_id=destination_id)
+                cart.destination = dest
+                cart.save()
+            except Destination.DoesNotExist:
+                pass
+
+        added_count = 0
+
+        # 1. Add Hotel if provided
+        if hotel_data and hotel_data.get("provider_id"):
+            try:
+                h_prov = ServiceProvider.objects.get(provider_id=hotel_data["provider_id"])
+                room = Room.objects.filter(room_id=hotel_data.get("room_id")).first()
+                b_details = {
+                    "check_in": start_date or "",
+                    "check_out": end_date or "",
+                    "rooms_count": rooms_count,
+                    "room_name": room.room_name if room else "",
+                    "price_per_night": float(room.price_per_night) if room else 0,
+                    "guests_count": travellers,
+                }
+                TripCartItem.objects.create(
+                    cart=cart,
+                    provider=h_prov,
+                    service_type="Hotel",
+                    room=room,
+                    booking_details=b_details
+                )
+                added_count += 1
+            except Exception as e:
+                print("Error adding recommended hotel to cart:", e)
+
+        # 2. Add Transportation if provided
+        if transport_data and transport_data.get("provider_id"):
+            try:
+                t_prov = ServiceProvider.objects.get(provider_id=transport_data["provider_id"])
+                veh = Vehicle.objects.filter(vehicle_id=transport_data.get("vehicle_id")).first()
+                b_details = {
+                    "journey_date": start_date or "",
+                    "return_date": end_date or "",
+                    "vehicle_name": veh.vehicle_name if veh else "",
+                    "price_fare": float(veh.price_fare) if veh else 0,
+                    "passengers_count": travellers,
+                    "pickup_location": cart.destination.name if cart.destination else "",
+                    "drop_location": cart.destination.name if cart.destination else "",
+                }
+                TripCartItem.objects.create(
+                    cart=cart,
+                    provider=t_prov,
+                    service_type="Transportation",
+                    vehicle=veh,
+                    booking_details=b_details
+                )
+                added_count += 1
+            except Exception as e:
+                print("Error adding recommended transport to cart:", e)
+
+        # 3. Add Activities if provided
+        for act in activities_data:
+            if act and act.get("provider_id"):
+                try:
+                    a_prov = ServiceProvider.objects.get(provider_id=act["provider_id"])
+                    a_item = ActivityItem.objects.filter(item_id=act.get("item_id")).first()
+                    if not TripCartItem.objects.filter(cart=cart, provider=a_prov, activity_item=a_item).exists():
+                        b_details = {
+                            "activity_date": start_date or "",
+                            "participants_count": travellers,
+                            "activity_title": a_item.activity_title if a_item else "",
+                            "price": float(a_item.price) if a_item else 0,
+                        }
+                        TripCartItem.objects.create(
+                            cart=cart,
+                            provider=a_prov,
+                            service_type="Activity",
+                            activity_item=a_item,
+                            booking_details=b_details
+                        )
+                        added_count += 1
+                except Exception as e:
+                    print("Error adding recommended activity to cart:", e)
+
+        return Response({
+            "success": True,
+            "message": f"Added {added_count} recommended services to your Trip Cart.",
+            "cart_count": cart.items.count(),
+            "redirect_url": "/plan-your-trip"
+        }, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        print("Error in batch add itinerary to cart:", str(e))
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 
 
 

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, re_path
 from django.views.generic import TemplateView
 from django.conf import settings
 from django.conf.urls.static import static
@@ -85,6 +85,12 @@ urlpatterns = [
     path("api/check-availability/", views.check_service_availability, name="check-availability"),
     path("api/admin/destinations-services/", views.admin_destinations_services, name="admin-destinations-services"),
     path("api/ai-recommendations/", views.ai_recommendations, name="ai-recommendations"),
+    path("api/itineraries/", views.get_shared_itineraries, name="shared-itineraries"),
+    path("api/itineraries/create/", views.create_itinerary, name="create-itinerary"),
+    path("api/itineraries/<int:itinerary_id>/", views.get_itinerary_details, name="itinerary-details"),
+    path("api/itineraries/<int:itinerary_id>/download-pdf/", views.download_itinerary_pdf, name="download-itinerary-pdf"),
+    path("api/itinerary/recommend/", views.recommend_itinerary, name="recommend-itinerary"),
+    path("api/itinerary/batch-add-cart/", views.batch_add_itinerary_to_cart, name="itinerary-batch-add-cart"),
 ]
 
 import os
@@ -145,15 +151,23 @@ urlpatterns += [
     path("media/<path:path>", serve_media, name="media-serve"),
     path("images/<path:path>", serve_media, name="images-serve"),
 ]
+def serve_static(request, path):
+    file_path = os.path.join(str(settings.STATIC_ROOT), path)
+    if os.path.isfile(file_path):
+        return FileResponse(open(file_path, 'rb'))
+    dist_file = os.path.join(str(settings.FRONTEND_DIST), path)
+    if os.path.isfile(dist_file):
+        return FileResponse(open(dist_file, 'rb'))
+    return django_static_serve(request, path, document_root=settings.STATIC_ROOT)
+
 urlpatterns += [
-    path("", TemplateView.as_view(template_name="index.html"), name="frontend"),
+    path("static/<path:path>", serve_static, name="static-serve"),
 ]
+
 urlpatterns += [
-    path(
-        "static/<path:path>",
-        django_static_serve,
-        {
-            "document_root": settings.STATIC_ROOT,
-        },
+    re_path(
+        r"^(?!api/|admin/|media/|images/|static/).*$",
+        TemplateView.as_view(template_name="index.html"),
+        name="frontend",
     ),
 ]

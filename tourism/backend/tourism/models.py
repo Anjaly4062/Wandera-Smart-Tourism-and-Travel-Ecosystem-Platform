@@ -815,6 +815,38 @@ class HiddenSpotImage(models.Model):
         return f"Image #{self.image_id} for {self.spot.name}"
 
 
+class Itinerary(models.Model):
+    itinerary_id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="itineraries"
+    )
+    title = models.CharField(max_length=200)
+    destination = models.CharField(max_length=200)
+    number_of_days = models.PositiveIntegerField(default=1)
+    description = models.TextField()
+    hotel_name = models.CharField(max_length=200, blank=True, default="")
+    accommodation_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    transportation_type = models.CharField(max_length=150, blank=True, default="")
+    transportation_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    activities = models.TextField(blank=True, default="")
+    food_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    other_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    total_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    travel_tips = models.TextField(blank=True, default="")
+    is_published = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "shared_itineraries"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.title} - {self.destination} ({self.user.full_name})"
+
+
 
 
 

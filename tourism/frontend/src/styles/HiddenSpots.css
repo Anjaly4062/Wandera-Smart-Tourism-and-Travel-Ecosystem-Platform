@@ -3,10 +3,20 @@
    ========================================================================= */
 
 .hidden-spots-page {
-    background: #0f172a;
     min-height: 100vh;
     color: #f8fafc;
     font-family: inherit;
+    background:
+        linear-gradient(
+            rgba(20, 38, 29, 0.42),
+            rgba(20, 38, 29, 0.52)
+        ),
+        url("../assets/hero.png");
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    position: relative;
 }
 
 .hidden-spots-container {
@@ -37,7 +47,7 @@
 
 .hidden-hero-left p {
     font-size: 13px;
-    color: #94a3b8;
+    color: #ffffff;
     margin: 0;
     max-width: 540px;
     line-height: 1.5;

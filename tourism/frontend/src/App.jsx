@@ -34,6 +34,10 @@ import Transportation from "./Pages/Transportation";
 import Restaurants from "./Pages/Restaurants";
 import Activities from "./Pages/Activities";
 import WanderaAIAssistant from "./Components/WanderaAIAssistant";
+import SharedItineraries from "./Pages/SharedItineraries";
+import CreateItinerary from "./Pages/CreateItinerary";
+import ItineraryDetails from "./Pages/ItineraryDetails";
+import RecommendItinerary from "./Pages/RecommendItinerary";
 
 function App() {
   return (
@@ -78,6 +82,13 @@ function App() {
         <Route path="/service/:providerId" element={<ServiceDetails />} />
         <Route path="/plan-your-trip" element={<PlanTrip />} />
         <Route path="/my-trip" element={<PlanTrip />} />
+        <Route path="/itineraries" element={<SharedItineraries />} />
+        <Route path="/itinerary" element={<SharedItineraries />} />
+        <Route path="/recommend-itinerary" element={<RecommendItinerary />} />
+        <Route path="/itinerary-recommendation" element={<RecommendItinerary />} />
+        <Route path="/create-itinerary" element={<CreateItinerary />} />
+        <Route path="/itinerary/:id" element={<ItineraryDetails />} />
+        <Route path="/itineraries/:id" element={<ItineraryDetails />} />
 
       </Routes>
 

@@ -134,7 +134,7 @@ export default function Navbar() {
 
                 <li>
                     <NavLink to="/itineraries">
-                        Itineraries
+                        Itinerary
                     </NavLink>
                 </li>
 

@@ -28,7 +28,8 @@ from .models import (
     Booking,
     BookingItem,
     HiddenSpot,
-    HiddenSpotImage
+    HiddenSpotImage,
+    Itinerary
 )
 
 class RestaurantImageSerializer(serializers.ModelSerializer):
@@ -453,3 +454,34 @@ class HiddenSpotSerializer(serializers.ModelSerializer):
         except Exception:
             pass
         return ""
+
+
+class ItinerarySerializer(serializers.ModelSerializer):
+    author_name = serializers.CharField(source="user.full_name", read_only=True)
+    author_email = serializers.CharField(source="user.email", read_only=True)
+
+    class Meta:
+        model = Itinerary
+        fields = [
+            "itinerary_id",
+            "user",
+            "author_name",
+            "author_email",
+            "title",
+            "destination",
+            "number_of_days",
+            "description",
+            "hotel_name",
+            "accommodation_cost",
+            "transportation_type",
+            "transportation_cost",
+            "activities",
+            "food_cost",
+            "other_cost",
+            "total_cost",
+            "travel_tips",
+            "is_published",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["itinerary_id", "created_at", "updated_at"]

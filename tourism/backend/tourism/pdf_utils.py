@@ -1,4 +1,5 @@
 import io
+import re
 from datetime import datetime
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
@@ -7,6 +8,8 @@ from reportlab.platypus import (
 )
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
+from reportlab.pdfgen import canvas
+
 
 def generate_booking_pdf(booking):
     """
@@ -377,3 +380,569 @@ def generate_booking_pdf(booking):
     doc.build(story)
     buffer.seek(0)
     return buffer
+
+
+def format_indian_currency(amount):
+    """
+    Formats a numeric amount with the Indian Rupee symbol and Indian numbering system (e.g. ₹1,50,000.00).
+    """
+    try:
+        val = float(amount or 0)
+    except (ValueError, TypeError):
+        return "₹0.00"
+    is_neg = val < 0
+    val = abs(val)
+    parts = f"{val:.2f}".split(".")
+    int_part, dec_part = parts[0], parts[1]
+    if len(int_part) <= 3:
+        formatted_int = int_part
+    else:
+        last3 = int_part[-3:]
+        rest = int_part[:-3]
+        groups = []
+        while len(rest) > 2:
+            groups.insert(0, rest[-2:])
+            rest = rest[:-2]
+        if rest:
+            groups.insert(0, rest)
+        groups.append(last3)
+        formatted_int = ",".join(groups)
+    sign = "-" if is_neg else ""
+    return f"{sign}₹{formatted_int}.{dec_part}"
+
+
+def escape_xml(text):
+    """
+    Escapes special XML/HTML characters to prevent ReportLab markup parsing errors.
+    """
+    if not text:
+        return ""
+    return str(text).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+
+
+class ItineraryNumberedCanvas(canvas.Canvas):
+    """
+    Two-pass canvas to dynamically compute and print 'Page X of Y' alongside
+    a professional running footer on every page.
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._saved_page_states = []
+
+    def showPage(self):
+        self._saved_page_states.append(dict(self.__dict__))
+        self._startPage()
+
+    def save(self):
+        num_pages = len(self._saved_page_states)
+        for state in self._saved_page_states:
+            self.__dict__.update(state)
+            self.draw_page_decorations(num_pages)
+            super().showPage()
+        super().save()
+
+    def draw_page_decorations(self, page_count):
+        self.saveState()
+        self.setFont("Helvetica", 8)
+        self.setFillColor(colors.HexColor("#64748b")) # Slate 500
+        w, h = self._pagesize
+        footer_y = 24
+
+        # Subtle separator line
+        self.setStrokeColor(colors.HexColor("#e2e8f0"))
+        self.setLineWidth(0.75)
+        self.line(36, footer_y + 12, w - 36, footer_y + 12)
+
+        # Left branding
+        self.drawString(36, footer_y, "Wandera Smart Tourism Platform • Kerala Travel Itinerary & Expense Guide")
+
+        # Right page number
+        page_str = f"Page {self._pageNumber} of {page_count}"
+        self.drawRightString(w - 36, footer_y, page_str)
+        self.restoreState()
+
+
+def generate_itinerary_pdf(itinerary):
+    """
+    Generates a professional, publication-quality PDF for a Wandera shared/curated
+    itinerary, including overview, day-by-day experience, visited places/activities,
+    expense breakdown, travel tips, and total trip cost.
+    Accepts an Itinerary model instance or a dictionary.
+    Returns a BytesIO stream containing binary PDF content.
+    """
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=letter,
+        rightMargin=36,
+        leftMargin=36,
+        topMargin=36,
+        bottomMargin=46
+    )
+
+    styles = getSampleStyleSheet()
+
+    # Shared Wandera Brand Color Palette
+    PRIMARY = colors.HexColor("#18261f")      # Dark Forest / Slate
+    SECONDARY = colors.HexColor("#2b7a4b")    # Wandera Emerald Green
+    ACCENT = colors.HexColor("#55d6be")       # Wandera Mint
+    BG_LIGHT = colors.HexColor("#f8fafc")     # Slate 50
+    BORDER_COLOR = colors.HexColor("#e2e8f0") # Slate 200
+    TEXT_DARK = colors.HexColor("#0f172a")    # Slate 900
+    TEXT_MUTED = colors.HexColor("#64748b")   # Slate 500
+    AMBER_BG = colors.HexColor("#fffbeb")     # Amber 50
+    AMBER_BORDER = colors.HexColor("#fde68a") # Amber 200
+    AMBER_TEXT = colors.HexColor("#92400e")   # Amber 800
+
+    # Typography Styles
+    style_brand = ParagraphStyle(
+        'ItinBrandTitle',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold',
+        fontSize=20,
+        leading=24,
+        textColor=PRIMARY
+    )
+
+    style_tagline = ParagraphStyle(
+        'ItinBrandTagline',
+        parent=styles['Normal'],
+        fontName='Helvetica',
+        fontSize=9,
+        leading=12,
+        textColor=TEXT_MUTED
+    )
+
+    style_receipt_title = ParagraphStyle(
+        'ItinReceiptTitle',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold',
+        fontSize=13,
+        leading=17,
+        textColor=SECONDARY,
+        alignment=2 # Right align
+    )
+
+    style_receipt_sub = ParagraphStyle(
+        'ItinReceiptSub',
+        parent=styles['Normal'],
+        fontName='Helvetica',
+        fontSize=9,
+        leading=13,
+        textColor=TEXT_MUTED,
+        alignment=2 # Right align
+    )
+
+    style_section_heading = ParagraphStyle(
+        'ItinSectionHeading',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold',
+        fontSize=11,
+        leading=15,
+        textColor=PRIMARY,
+        spaceBefore=10,
+        spaceAfter=4
+    )
+
+    style_body = ParagraphStyle(
+        'ItinBody',
+        parent=styles['Normal'],
+        fontName='Helvetica',
+        fontSize=9.5,
+        leading=14,
+        textColor=TEXT_DARK
+    )
+
+    style_body_day_title = ParagraphStyle(
+        'ItinDayTitle',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold',
+        fontSize=10,
+        leading=14,
+        textColor=SECONDARY,
+        spaceBefore=6,
+        spaceAfter=2
+    )
+
+    style_body_muted = ParagraphStyle(
+        'ItinBodyMuted',
+        parent=styles['Normal'],
+        fontName='Helvetica-Oblique',
+        fontSize=9,
+        leading=13,
+        textColor=TEXT_MUTED
+    )
+
+    style_table_header = ParagraphStyle(
+        'ItinTableHeader',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold',
+        fontSize=9,
+        leading=12,
+        textColor=colors.white
+    )
+
+    style_table_cell = ParagraphStyle(
+        'ItinTableCell',
+        parent=styles['Normal'],
+        fontName='Helvetica',
+        fontSize=9,
+        leading=13,
+        textColor=TEXT_DARK
+    )
+
+    style_table_cell_bold = ParagraphStyle(
+        'ItinTableCellBold',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold',
+        fontSize=9,
+        leading=13,
+        textColor=TEXT_DARK
+    )
+
+    style_table_cell_cost = ParagraphStyle(
+        'ItinTableCellCost',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold',
+        fontSize=9.5,
+        leading=13,
+        textColor=SECONDARY,
+        alignment=2 # Right align
+    )
+
+    style_total_label = ParagraphStyle(
+        'ItinTotalLabel',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold',
+        fontSize=10,
+        leading=13,
+        textColor=colors.white
+    )
+
+    style_total_val = ParagraphStyle(
+        'ItinTotalVal',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold',
+        fontSize=10.5,
+        leading=13,
+        textColor=colors.white,
+        alignment=2 # Right align
+    )
+
+    style_tips_text = ParagraphStyle(
+        'ItinTipsText',
+        parent=styles['Normal'],
+        fontName='Helvetica',
+        fontSize=9,
+        leading=13.5,
+        textColor=AMBER_TEXT
+    )
+
+    style_footer = ParagraphStyle(
+        'ItinFooterText',
+        parent=styles['Normal'],
+        fontName='Helvetica',
+        fontSize=8,
+        leading=11,
+        textColor=TEXT_MUTED,
+        alignment=1 # Center align
+    )
+
+    # Extract data handling both model instance and dictionary
+    if isinstance(itinerary, dict):
+        itinerary_id = itinerary.get("itinerary_id", "N/A")
+        title = itinerary.get("title") or "Wandera Travel Itinerary"
+        destination = itinerary.get("destination") or "Kerala, India"
+        number_of_days = itinerary.get("number_of_days") or 1
+        description = itinerary.get("description") or ""
+        hotel_name = itinerary.get("hotel_name") or ""
+        accommodation_cost = itinerary.get("accommodation_cost") or 0
+        transportation_type = itinerary.get("transportation_type") or ""
+        transportation_cost = itinerary.get("transportation_cost") or 0
+        activities = itinerary.get("activities") or ""
+        food_cost = itinerary.get("food_cost") or 0
+        other_cost = itinerary.get("other_cost") or 0
+        total_cost = itinerary.get("total_cost") or 0
+        travel_tips = itinerary.get("travel_tips") or ""
+        created_at_raw = itinerary.get("created_at")
+    else:
+        itinerary_id = getattr(itinerary, "itinerary_id", "N/A")
+        title = getattr(itinerary, "title", "") or "Wandera Travel Itinerary"
+        destination = getattr(itinerary, "destination", "") or "Kerala, India"
+        number_of_days = getattr(itinerary, "number_of_days", 1) or 1
+        description = getattr(itinerary, "description", "") or ""
+        hotel_name = getattr(itinerary, "hotel_name", "") or ""
+        accommodation_cost = getattr(itinerary, "accommodation_cost", 0) or 0
+        transportation_type = getattr(itinerary, "transportation_type", "") or ""
+        transportation_cost = getattr(itinerary, "transportation_cost", 0) or 0
+        activities = getattr(itinerary, "activities", "") or ""
+        food_cost = getattr(itinerary, "food_cost", 0) or 0
+        other_cost = getattr(itinerary, "other_cost", 0) or 0
+        total_cost = getattr(itinerary, "total_cost", 0) or 0
+        travel_tips = getattr(itinerary, "travel_tips", "") or ""
+        created_at_raw = getattr(itinerary, "created_at", None)
+
+    # Format created date
+    if isinstance(created_at_raw, datetime):
+        created_date_str = created_at_raw.strftime("%d %b %Y")
+    elif isinstance(created_at_raw, str) and created_at_raw:
+        try:
+            dt = datetime.fromisoformat(created_at_raw.replace("Z", "+00:00"))
+            created_date_str = dt.strftime("%d %b %Y")
+        except Exception:
+            created_date_str = created_at_raw[:10]
+    else:
+        created_date_str = datetime.now().strftime("%d %b %Y")
+
+    try:
+        number_of_days = int(number_of_days)
+    except (ValueError, TypeError):
+        number_of_days = 1
+
+    days_label = f"{number_of_days} Day{'s' if number_of_days > 1 else ''} Trip"
+
+    story = []
+
+    # 1. HEADER SECTION (Brand Left, Itinerary Meta Right)
+    brand_p = [
+        Paragraph("WANDERA", style_brand),
+        Paragraph("Smart Tourism & Travel Ecosystem Platform", style_tagline),
+        Paragraph("Curated Community Travel Itinerary & Expense Guide", style_tagline)
+    ]
+
+    itin_meta_p = [
+        Paragraph(f"ITINERARY #{itinerary_id}", style_receipt_title),
+        Paragraph(f"<b>Published:</b> {escape_xml(created_date_str)}", style_receipt_sub),
+        Paragraph(f"<b>Duration:</b> {escape_xml(days_label)}", style_receipt_sub)
+    ]
+
+    header_table = Table(
+        [[brand_p, itin_meta_p]],
+        colWidths=[4.2 * inch, 3.3 * inch]
+    )
+    header_table.setStyle(TableStyle([
+        ('VALIGN', (0,0), (-1,-1), 'TOP'),
+        ('LEFTPADDING', (0,0), (-1,-1), 0),
+        ('RIGHTPADDING', (0,0), (-1,-1), 0),
+        ('TOPPADDING', (0,0), (-1,-1), 0),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 4),
+    ]))
+    story.append(header_table)
+    story.append(Spacer(1, 4))
+    story.append(HRFlowable(width="100%", thickness=1.5, color=SECONDARY, spaceBefore=2, spaceAfter=8))
+
+    # 2. HERO / OVERVIEW CARD
+    overview_data = [
+        [
+            Paragraph("TRIP DETAILS", style_section_heading),
+            Paragraph("SCHEDULE & TIMELINE", style_section_heading)
+        ],
+        [
+            Paragraph(
+                f"<b>Title:</b> {escape_xml(title)}<br/>"
+                f"<b>Destination:</b> {escape_xml(destination)}",
+                style_body
+            ),
+            Paragraph(
+                f"<b>Duration:</b> {escape_xml(days_label)}<br/>"
+                f"<b>Published Date:</b> {escape_xml(created_date_str)}",
+                style_body
+            )
+        ]
+    ]
+
+    overview_table = Table(overview_data, colWidths=[3.75 * inch, 3.75 * inch])
+    overview_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), BG_LIGHT),
+        ('BOX', (0, 0), (-1, -1), 1, BORDER_COLOR),
+        ('INNERGRID', (0, 0), (-1, -1), 0.5, BORDER_COLOR),
+        ('TOPPADDING', (0, 0), (-1, -1), 6),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ('LEFTPADDING', (0, 0), (-1, -1), 10),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 10),
+    ]))
+    story.append(overview_table)
+    story.append(Spacer(1, 10))
+
+    # 3. COST HIGHLIGHT BANNER
+    cost_banner_data = [
+        [
+            Paragraph(
+                f"<font size=8 color='#64748b'>TOTAL ESTIMATED TRIP BUDGET</font><br/>"
+                f"<font size=14 color='#18261f'><b>{format_indian_currency(total_cost)} INR</b></font><br/>"
+                f"<font size=8 color='#64748b'>Comprehensive estimated expenses for {escape_xml(days_label)} across stay, transit, food & extras</font>",
+                style_body
+            ),
+            Paragraph(
+                f"<font size=8 color='#64748b'>DESTINATION</font><br/>"
+                f"<font size=11 color='#2b7a4b'><b>{escape_xml(destination)}</b></font><br/>"
+                f"<font size=8 color='#64748b'>Verified Community Guide</font>",
+                style_body
+            )
+        ]
+    ]
+    cost_banner_table = Table(cost_banner_data, colWidths=[4.75 * inch, 2.75 * inch])
+    cost_banner_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), BG_LIGHT),
+        ('BOX', (0, 0), (-1, -1), 1, colors.HexColor("#bbf7d0")), # Soft Emerald border
+        ('INNERGRID', (0, 0), (-1, -1), 0.5, BORDER_COLOR),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ('LEFTPADDING', (0, 0), (-1, -1), 12),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 12),
+    ]))
+    story.append(cost_banner_table)
+    story.append(Spacer(1, 12))
+
+    # 4. DAY-BY-DAY TRAVEL EXPERIENCE
+    story.append(Paragraph("DAY-BY-DAY TRAVEL EXPERIENCE", style_section_heading))
+
+    if description.strip():
+        lines = description.strip().split("\n")
+        current_paragraphs = []
+        for line in lines:
+            line_clean = line.strip()
+            if not line_clean:
+                if current_paragraphs:
+                    story.append(Paragraph("<br/>".join(current_paragraphs), style_body))
+                    story.append(Spacer(1, 5))
+                    current_paragraphs = []
+            else:
+                day_match = re.match(r'^(Day\s+\d+[:\-\s]*)(.*)$', line_clean, re.IGNORECASE)
+                if day_match:
+                    if current_paragraphs:
+                        story.append(Paragraph("<br/>".join(current_paragraphs), style_body))
+                        story.append(Spacer(1, 4))
+                        current_paragraphs = []
+                    day_prefix = escape_xml(day_match.group(1).strip())
+                    day_rest = escape_xml(day_match.group(2).strip())
+                    story.append(Paragraph(f"• <b>{day_prefix}</b> {day_rest}", style_body_day_title if not day_rest else style_body))
+                else:
+                    current_paragraphs.append(escape_xml(line_clean))
+        if current_paragraphs:
+            story.append(Paragraph("<br/>".join(current_paragraphs), style_body))
+    else:
+        story.append(Paragraph("No detailed travel notes provided for this itinerary.", style_body_muted))
+
+    story.append(Spacer(1, 12))
+
+    # 5. ACTIVITIES & PLACES VISITED (if provided)
+    if activities.strip():
+        story.append(Paragraph("ACTIVITIES & PLACES VISITED", style_section_heading))
+        activities_lines = [line.strip() for line in activities.strip().split("\n") if line.strip()]
+        formatted_act_lines = []
+        for line in activities_lines:
+            formatted_act_lines.append(f"• {escape_xml(line)}")
+
+        act_table = Table(
+            [[Paragraph("<br/>".join(formatted_act_lines), style_body)]],
+            colWidths=[7.5 * inch]
+        )
+        act_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), BG_LIGHT),
+            ('BOX', (0, 0), (-1, -1), 1, BORDER_COLOR),
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('LEFTPADDING', (0, 0), (-1, -1), 12),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 12),
+        ]))
+        story.append(act_table)
+        story.append(Spacer(1, 12))
+
+    # 6. COMPREHENSIVE EXPENSE BREAKDOWN TABLE
+    story.append(Paragraph("COMPREHENSIVE EXPENSE BREAKDOWN", style_section_heading))
+
+    hotel_desc = f"<b>{escape_xml(hotel_name)}</b>" if hotel_name else "Standard / self-arranged stay"
+    transit_desc = f"<b>{escape_xml(transportation_type)}</b>" if transportation_type else "Local public transit / cab"
+
+    expense_data = [
+        [
+            Paragraph("Category", style_table_header),
+            Paragraph("Item & Experience Details", style_table_header),
+            Paragraph("Estimated Cost (INR)", ParagraphStyle('THRight', parent=style_table_header, alignment=2))
+        ],
+        [
+            Paragraph("<b>Accommodation</b>", style_table_cell_bold),
+            Paragraph(f"Lodging & Stay: {hotel_desc}", style_table_cell),
+            Paragraph(format_indian_currency(accommodation_cost), style_table_cell_cost)
+        ],
+        [
+            Paragraph("<b>Transportation</b>", style_table_cell_bold),
+            Paragraph(f"Transit & Travel: {transit_desc}", style_table_cell),
+            Paragraph(format_indian_currency(transportation_cost), style_table_cell_cost)
+        ],
+        [
+            Paragraph("<b>Food & Dining</b>", style_table_cell_bold),
+            Paragraph("Daily meals, local specialties & refreshments", style_table_cell),
+            Paragraph(format_indian_currency(food_cost), style_table_cell_cost)
+        ],
+        [
+            Paragraph("<b>Other Expenses</b>", style_table_cell_bold),
+            Paragraph("Entry tickets, permits, local activities & incidentals", style_table_cell),
+            Paragraph(format_indian_currency(other_cost), style_table_cell_cost)
+        ],
+        [
+            Paragraph("<b>TOTAL ESTIMATED COST</b>", style_total_label),
+            Paragraph(f"All-inclusive trip expenses for {escape_xml(days_label)}", style_total_label),
+            Paragraph(format_indian_currency(total_cost), style_total_val)
+        ]
+    ]
+
+    expense_table = Table(
+        expense_data,
+        colWidths=[1.8 * inch, 3.9 * inch, 1.8 * inch]
+    )
+    expense_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), PRIMARY),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('GRID', (0, 0), (-1, -2), 0.5, BORDER_COLOR),
+        ('BACKGROUND', (0, 1), (-1, -2), BG_LIGHT),
+        ('BACKGROUND', (0, -1), (-1, -1), SECONDARY),
+        ('TOPPADDING', (0, 0), (-1, -1), 6),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ('LEFTPADDING', (0, 0), (-1, -1), 8),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+    ]))
+
+    story.append(KeepTogether([expense_table]))
+    story.append(Spacer(1, 12))
+
+    # 7. HELPFUL TRAVEL TIPS (if provided)
+    if travel_tips.strip():
+        story.append(Paragraph("HELPFUL TRAVEL TIPS & RECOMMENDATIONS", style_section_heading))
+        tips_clean = travel_tips.strip().split("\n")
+        formatted_tips = [f"• {escape_xml(t.strip())}" for t in tips_clean if t.strip()]
+        tips_data = [
+            [
+                Paragraph("<b>PRO TRAVELER ADVICE:</b><br/>" + "<br/>".join(formatted_tips), style_tips_text)
+            ]
+        ]
+        tips_table = Table(tips_data, colWidths=[7.5 * inch])
+        tips_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), AMBER_BG),
+            ('BOX', (0, 0), (-1, -1), 1, AMBER_BORDER),
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('LEFTPADDING', (0, 0), (-1, -1), 12),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 12),
+        ]))
+        story.append(KeepTogether([tips_table]))
+        story.append(Spacer(1, 14))
+
+    # 8. FOOTER / DISCLAIMER
+    story.append(KeepTogether([
+        HRFlowable(width="100%", thickness=0.5, color=BORDER_COLOR, spaceBefore=4, spaceAfter=8),
+        Paragraph(
+            "<b>Community Travel Disclaimer:</b> This itinerary was shared by a Wandera traveler for community inspiration and reference. "
+            "Individual travel costs and service availability can vary depending on seasonality, group size, and dynamic provider rates. "
+            "Verify all service details and reserve certified hotels, transportation, and activities directly on <b>Wandera</b>.",
+            style_footer
+        ),
+        Spacer(1, 4),
+        Paragraph("Thank you for using Wandera — Discover, Plan, and Experience God's Own Country seamlessly!", style_footer)
+    ]))
+
+    doc.build(story, canvasmaker=ItineraryNumberedCanvas)
+    buffer.seek(0)
+    return buffer
+
