@@ -24,7 +24,17 @@ encoder = joblib.load(ENCODER_PATH)
 
 print("Wandera recommendation model loaded successfully.")
 # Questionnaire mappings used during ML training
+import sys
+import sklearn
+import numpy
+import pandas
+import joblib
 
+print("RENDER PYTHON:", sys.version)
+print("RENDER SCIKIT-LEARN:", sklearn.__version__)
+print("RENDER NUMPY:", numpy.__version__)
+print("RENDER PANDAS:", pandas.__version__)
+print("RENDER JOBLIB:", joblib.__version__)
 BUDGET_OPTIONS = {
     "Low": 5000,
     "Moderate": 10000,
