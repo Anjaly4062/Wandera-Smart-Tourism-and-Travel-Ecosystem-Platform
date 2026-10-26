@@ -152,21 +152,21 @@ function Login() {
 
 
                 <input
-
                     type="password"
-
                     placeholder="Password"
-
+                    value={password}
                     onChange={(e)=>setPassword(e.target.value)}
-
+                    onKeyDown={(e) => { if (e.key === "Enter") login(); }}
                 />
 
-
+                <div className="forgot-password-link-wrapper">
+                    <Link to="/forgot-password" className="forgot-password-link">
+                        Forgot Password?
+                    </Link>
+                </div>
 
                 <button onClick={login}>
-
                     Login
-
                 </button>
 
 

@@ -38,6 +38,11 @@ import SharedItineraries from "./Pages/SharedItineraries";
 import CreateItinerary from "./Pages/CreateItinerary";
 import ItineraryDetails from "./Pages/ItineraryDetails";
 import RecommendItinerary from "./Pages/RecommendItinerary";
+import ForgotPassword from "./Pages/ForgotPassword";
+import ResetPassword from "./Pages/ResetPassword";
+import MyBookings from "./Pages/MyBookings";
+import About from "./Pages/About";
+import AdminItineraries from "./Pages/AdminItineraries";
 
 function App() {
   return (
@@ -46,18 +51,28 @@ function App() {
       <Routes>
 
         <Route path="/" element={<Home />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/static/about" element={<About />} />
 
         <Route path="/signup" element={<Register />} />
 
         <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:uid/:token" element={<ResetPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/static/forgot-password" element={<ForgotPassword />} />
+        <Route path="/static/reset-password/:uid/:token" element={<ResetPassword />} />
+        <Route path="/static/reset-password" element={<ResetPassword />} />
         <Route path="/admin" element={<AdminHome />} />
         <Route path="/admin/tourists" element={<AdminTourists />} />
         <Route path="/admin/service-providers" element={<AdminServiceProviders />} />
         <Route path="/admin/bookings" element={<AdminBookings />} />
         <Route path="/admin/hidden-spots" element={<AdminHiddenSpots />} />
+        <Route path="/admin/itineraries" element={<AdminItineraries />} />
         <Route path="/admin/provider-request" element={<AdminProviderRequest />} />
         <Route path="/admin/destinations-services" element={<AdminDestinationsServices />} />
         <Route path="/my-profile" element={<MyProfile />} />
+        <Route path="/my-bookings" element={<MyBookings />} />
         <Route path="/provider-home" element={<ServiceProviderHome />} />
         <Route path="/provider/profile" element={<ServiceProviderProfile />} />
         <Route path="/admin/add-destination" element={<AdminAddDestination />} />

@@ -42,6 +42,25 @@ class User(models.Model):
     def __str__(self):
         return self.full_name
 
+    def set_password(self, raw_password):
+        """
+        Hashes the raw password using Django's password hasher before saving.
+        """
+        from django.contrib.auth.hashers import make_password
+        self.password = make_password(raw_password)
+
+    def check_password(self, raw_password):
+        """
+        Verifies the raw password against the stored password hash.
+        Includes backward compatibility for legacy plaintext passwords.
+        """
+        from django.contrib.auth.hashers import check_password
+        if not self.password:
+            return False
+        if check_password(raw_password, self.password):
+            return True
+        return self.password == raw_password
+
 class TouristProfile(models.Model):
     profile_id = models.AutoField(primary_key=True)
 

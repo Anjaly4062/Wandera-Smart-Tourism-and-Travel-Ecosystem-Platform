@@ -361,3 +361,120 @@ https://wandera.com
         return False
 
 
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+
+class WanderaPasswordResetTokenGenerator(PasswordResetTokenGenerator):
+    """
+    Custom password reset token generator for Wandera User model.
+    Binds the token to user pk, user password hash, email, and timestamp.
+    When user's password changes, the hash changes, invalidating any previously issued tokens.
+    """
+    def _make_hash_value(self, user, timestamp):
+        return f"{user.pk}{user.password}{user.email}{timestamp}"
+
+password_reset_token_generator = WanderaPasswordResetTokenGenerator()
+
+
+def send_password_reset_email(user, reset_url):
+    """
+    Sends a secure, professional password reset email containing a time-limited reset link.
+    Reuses existing Django SMTP configuration from settings.
+    Non-blocking / error-resilient: catches and logs exceptions.
+    """
+    try:
+        recipient_email = user.email.strip()
+        user_name = user.full_name or "Traveler"
+        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', None) or getattr(settings, 'EMAIL_HOST_USER', None) or 'Wandera Smart Tourism <no-reply@wandera.com>'
+
+        subject = "Reset Your Password | Wandera Smart Tourism"
+
+        text_content = f"""Dear {user_name},
+
+We received a request to reset the password for your Wandera account ({recipient_email}).
+
+Please click or open the link below to set a new password:
+{reset_url}
+
+IMPORTANT SECURITY NOTICE:
+- This password reset link is valid for 1 hour and can only be used once.
+- If you did not request a password reset, please ignore this email. Your account remains secure and your password will not be changed.
+
+Best regards,
+The Wandera Team
+https://wandera.com
+"""
+
+        html_content = f"""<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f1f5f9; margin: 0; padding: 24px; color: #1e293b; }}
+  .email-container {{ max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 14px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 16px rgba(0,0,0,0.06); }}
+  .email-header {{ background: #18261f; color: #ffffff; padding: 26px 30px; text-align: left; }}
+  .email-header h1 {{ margin: 0 0 4px; font-size: 22px; color: #55d6be; letter-spacing: 0.5px; font-weight: 700; }}
+  .email-header p {{ margin: 0; font-size: 13px; color: #94a3b8; }}
+  .email-body {{ padding: 32px 30px; }}
+  .greeting {{ font-size: 15px; margin: 0 0 14px; color: #0f172a; }}
+  .intro-text {{ font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 24px; }}
+  .btn-wrapper {{ text-align: center; margin: 28px 0; }}
+  .reset-btn {{ display: inline-block; background: #55d6be; color: #063b36 !important; font-size: 15px; font-weight: 700; padding: 13px 36px; border-radius: 28px; text-decoration: none; box-shadow: 0 4px 12px rgba(85, 214, 190, 0.35); }}
+  .fallback-box {{ background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px; margin: 22px 0 18px; font-size: 12px; color: #64748b; word-break: break-all; line-height: 1.5; }}
+  .fallback-box a {{ color: #0789e8; text-decoration: underline; }}
+  .security-notice {{ background: #fffbeb; border-left: 4px solid #f59e0b; padding: 12px 14px; margin: 20px 0 10px; font-size: 12.5px; color: #92400e; line-height: 1.45; border-radius: 0 6px 6px 0; }}
+  .email-footer {{ background: #f8fafc; padding: 20px 30px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; }}
+</style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="email-header">
+      <h1>WANDERA</h1>
+      <p>Smart Tourism & Travel Ecosystem Platform</p>
+    </div>
+    <div class="email-body">
+      <p class="greeting">Hello <strong>{user_name}</strong>,</p>
+      <p class="intro-text">
+        We received a request to reset the password for your Wandera account associated with <strong>{recipient_email}</strong>.
+      </p>
+
+      <div class="btn-wrapper">
+        <a href="{reset_url}" target="_blank" class="reset-btn">Reset My Password</a>
+      </div>
+
+      <div class="security-notice">
+        <strong>⚠️ Security Notice:</strong> This reset link will expire in <strong>1 hour</strong> and can only be used once. If you did not make this request, you can safely ignore this email; your current password remains secure.
+      </div>
+
+      <div class="fallback-box">
+        <strong>Having trouble clicking the button?</strong> Copy and paste this link into your web browser:<br>
+        <a href="{reset_url}">{reset_url}</a>
+      </div>
+    </div>
+    <div class="email-footer">
+      &copy; Wandera Smart Tourism Platform &bull; Need assistance? Contact <a href="mailto:support@wandera.com" style="color:#2b7a4b; text-decoration:none;">support@wandera.com</a>
+    </div>
+  </div>
+</body>
+</html>
+"""
+
+        msg = EmailMultiAlternatives(
+            subject=subject,
+            body=text_content,
+            from_email=from_email,
+            to=[recipient_email]
+        )
+        msg.attach_alternative(html_content, "text/html")
+
+        print(f"[WANDERA EMAIL] Sending password reset email to: {recipient_email}...")
+        msg.send(fail_silently=False)
+        print(f"[WANDERA EMAIL SUCCESS] Password reset email sent to: {recipient_email}")
+        logger.info(f"Password reset email sent to {recipient_email}")
+        return True
+
+    except Exception as e:
+        print(f"[WANDERA EMAIL ERROR] Failed to send password reset email to {getattr(user, 'email', 'N/A')}: {str(e)}")
+        logger.exception(f"Password reset email failure: {e}")
+        return False
+
+

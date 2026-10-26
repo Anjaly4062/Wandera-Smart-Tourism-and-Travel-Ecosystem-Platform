@@ -7,6 +7,7 @@ import "../styles/ServiceProviderHome.css";
 export default function ServiceProviderHome() {
     const navigate = useNavigate();
     const [providerInfo, setProviderInfo] = useState(null);
+    const [bookingCount, setBookingCount] = useState(0);
     const [loading, setLoading] = useState(true);
 
     const providerName = localStorage.getItem("name") || "Service Provider";
@@ -26,11 +27,22 @@ export default function ServiceProviderHome() {
                         localStorage.setItem("service_type", res.data.provider.service_type);
                     }
                 }
+                if (res.data?.booking_count !== undefined) {
+                    setBookingCount(res.data.booking_count);
+                }
             })
             .catch((err) => {
                 console.error("Error loading dashboard provider info:", err);
             })
             .finally(() => setLoading(false));
+
+        // Fetch provider bookings to ensure accurate booking count
+        api.get(`provider-bookings/${providerId}/`)
+            .then((res) => {
+                const count = res.data?.total_count ?? (res.data?.bookings ? res.data.bookings.length : 0);
+                setBookingCount(count);
+            })
+            .catch(() => {});
     }, [providerId]);
 
     const serviceType = providerInfo?.service_type || localStorage.getItem("service_type") || "Hotel";
@@ -146,19 +158,49 @@ export default function ServiceProviderHome() {
                         <div className="dashboard-panel">
                             <div className="panel-header">
                                 <div>
-                                    <h3>Recent Bookings</h3>
-                                    <p>Latest booking requests</p>
+                                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                        <h3>Recent Bookings</h3>
+                                        <span style={{
+                                            background: "#0284c7",
+                                            color: "#ffffff",
+                                            fontSize: "11px",
+                                            fontWeight: "700",
+                                            padding: "1px 8px",
+                                            borderRadius: "12px",
+                                            lineHeight: "1.4"
+                                        }}>
+                                            {bookingCount}
+                                        </span>
+                                    </div>
+                                    <p>Total Bookings: <strong>{bookingCount}</strong></p>
                                 </div>
                                 <button onClick={() => navigate("/provider/bookings")}>
                                     View All
                                 </button>
                             </div>
 
-                            <div className="empty-bookings">
-                                <div className="booking-empty-icon">◷</div>
-                                <h4>No bookings yet</h4>
-                                <p>Your tourist bookings will appear here once active.</p>
-                            </div>
+                            {bookingCount > 0 ? (
+                                <div className="empty-bookings">
+                                    <div className="booking-empty-icon" style={{ background: "rgba(2, 132, 199, 0.1)", color: "#0284c7" }}>
+                                        📅
+                                    </div>
+                                    <h4>{bookingCount} Booking{bookingCount !== 1 ? "s" : ""} Received</h4>
+                                    <p>You have {bookingCount} total booking{bookingCount !== 1 ? "s" : ""} recorded for your service.</p>
+                                    <button 
+                                        className="manage-btn"
+                                        style={{ marginTop: "12px", background: "linear-gradient(90deg, #0789e8, #1b49c4)", color: "white" }}
+                                        onClick={() => navigate("/provider/bookings")}
+                                    >
+                                        View Bookings ({bookingCount})
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="empty-bookings">
+                                    <div className="booking-empty-icon">◷</div>
+                                    <h4>No bookings yet</h4>
+                                    <p>Total Bookings: 0. Your tourist bookings will appear here once active.</p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </section>

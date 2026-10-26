@@ -59,6 +59,7 @@ urlpatterns = [
     path("api/user-bookings/<int:user_id>/", views.get_user_bookings, name="user-bookings"),
     path("api/booking-details/<int:booking_id>/", views.get_booking_details, name="booking-details"),
     path("api/booking/<int:booking_id>/download-pdf/", views.download_booking_pdf, name="download-booking-pdf"),
+    path("api/booking/<int:booking_id>/cancel/", views.cancel_booking, name="cancel-booking"),
     path("api/provider-bookings/<int:provider_id>/", views.get_provider_bookings, name="provider-bookings"),
     path("api/provider-booking-item/<int:booking_item_id>/status/", views.update_booking_item_status, name="update-booking-item-status"),
     path("api/provider-booking-item/<int:booking_item_id>/verify-checkin/", views.verify_provider_checkin_otp, name="verify-checkin-otp"),
@@ -86,11 +87,16 @@ urlpatterns = [
     path("api/admin/destinations-services/", views.admin_destinations_services, name="admin-destinations-services"),
     path("api/ai-recommendations/", views.ai_recommendations, name="ai-recommendations"),
     path("api/itineraries/", views.get_shared_itineraries, name="shared-itineraries"),
+    path("api/admin/itineraries/", views.get_all_user_itineraries, name="admin-itineraries"),
     path("api/itineraries/create/", views.create_itinerary, name="create-itinerary"),
     path("api/itineraries/<int:itinerary_id>/", views.get_itinerary_details, name="itinerary-details"),
     path("api/itineraries/<int:itinerary_id>/download-pdf/", views.download_itinerary_pdf, name="download-itinerary-pdf"),
     path("api/itinerary/recommend/", views.recommend_itinerary, name="recommend-itinerary"),
     path("api/itinerary/batch-add-cart/", views.batch_add_itinerary_to_cart, name="itinerary-batch-add-cart"),
+    path("api/forgot-password/", views.forgot_password, name="forgot-password"),
+    path("api/verify-reset-token/", views.verify_reset_token, name="verify-reset-token"),
+    path("api/reset-password/", views.reset_password_confirm, name="reset-password-confirm"),
+    path("api/reset-password/confirm/", views.reset_password_confirm, name="reset-password-confirm-alias"),
 ]
 
 import os

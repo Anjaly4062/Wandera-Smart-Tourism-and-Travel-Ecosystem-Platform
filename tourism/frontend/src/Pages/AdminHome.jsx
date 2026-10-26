@@ -14,7 +14,8 @@ export default function AdminHome() {
         destinations_count: 0,
         pending_requests_count: 0,
         bookings_count: 0,
-        pending_hidden_spots_count: 0
+        pending_hidden_spots_count: 0,
+        itineraries_count: 0
     });
     const [loading, setLoading] = useState(true);
 
@@ -32,7 +33,8 @@ export default function AdminHome() {
                     destinations_count: res.data.destinations_count || 0,
                     pending_requests_count: res.data.pending_requests_count || 0,
                     bookings_count: res.data.bookings_count || 0,
-                    pending_hidden_spots_count: res.data.pending_hidden_spots_count || 0
+                    pending_hidden_spots_count: res.data.pending_hidden_spots_count || 0,
+                    itineraries_count: res.data.itineraries_count || 0
                 });
             }
         } catch (error) {
@@ -166,6 +168,19 @@ export default function AdminHome() {
                             <div>
                                 <span>Hidden Spots</span>
                                 <h3>{loading ? "..." : stats.pending_hidden_spots_count}</h3>
+                            </div>
+                        </div>
+
+                        <div
+                            className="stat-card"
+                            onClick={() => navigate("/admin/itineraries")}
+                            role="button"
+                            tabIndex={0}
+                        >
+                            <div className="stat-icon service-icon">🗺️</div>
+                            <div>
+                                <span>User Itineraries</span>
+                                <h3>{loading ? "..." : stats.itineraries_count}</h3>
                             </div>
                         </div>
                     </div>

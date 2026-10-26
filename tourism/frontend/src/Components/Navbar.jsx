@@ -189,6 +189,16 @@ export default function Navbar() {
                                         className="dropdown-item"
                                         onClick={() => {
                                             setShowProfileMenu(false);
+                                            navigate("/my-bookings");
+                                        }}
+                                    >
+                                        📋 <span>My Bookings</span>
+                                    </button>
+
+                                    <button
+                                        className="dropdown-item"
+                                        onClick={() => {
+                                            setShowProfileMenu(false);
                                             navigate("/plan-your-trip");
                                         }}
                                     >

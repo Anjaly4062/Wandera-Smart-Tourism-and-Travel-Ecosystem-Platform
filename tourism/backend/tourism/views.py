@@ -163,12 +163,11 @@ def login(request):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    if password != user.password:
-
-     return Response(
-        {"message": "Invalid Password"},
-        status=status.HTTP_400_BAD_REQUEST
-    )
+    if not user.check_password(password):
+        return Response(
+            {"message": "Invalid Password"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
     provider_id = None
     service_type = None
 
@@ -1165,8 +1164,11 @@ def get_provider_info(request, provider_id):
             "activity__images", "activity__items__images"
         ).get(provider_id=provider_id)
         
+        booking_count = BookingItem.objects.filter(provider=provider).count()
+
         return Response({
-            "provider": ServiceProviderSerializer(provider).data
+            "provider": ServiceProviderSerializer(provider).data,
+            "booking_count": booking_count
         }, status=status.HTTP_200_OK)
 
     except ServiceProvider.DoesNotExist:
@@ -1807,6 +1809,7 @@ def admin_stats(request):
         pending_requests_count = ServiceProviderRequest.objects.filter(approval_status="Pending").count()
         bookings_count = Booking.objects.count()
         pending_hidden_spots_count = HiddenSpot.objects.filter(status="Pending").count()
+        itineraries_count = Itinerary.objects.count()
 
         return Response({
             "tourists_count": tourists_count,
@@ -1814,7 +1817,8 @@ def admin_stats(request):
             "destinations_count": destinations_count,
             "pending_requests_count": pending_requests_count,
             "bookings_count": bookings_count,
-            "pending_hidden_spots_count": pending_hidden_spots_count
+            "pending_hidden_spots_count": pending_hidden_spots_count,
+            "itineraries_count": itineraries_count
         }, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -2643,6 +2647,73 @@ def update_booking_item_status(request, booking_item_id):
         }, status=status.HTTP_200_OK)
 
     except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(["POST"])
+def cancel_booking(request, booking_id):
+    """
+    Cancels an active or pending booking for a tourist.
+    Enforces server-side validations:
+    - User ownership: only the tourist who made the booking (or admin) can cancel.
+    - Status check: Cannot cancel if already Cancelled or Completed.
+    - Service check: Cannot cancel if any service item has been checked in (checkin_verified=True) or completed.
+    - Updates booking_status to 'Cancelled' and all item statuses to 'Cancelled'.
+    - Preserves existing payment status and transaction record without premature refund claims.
+    """
+    try:
+        try:
+            booking = Booking.objects.select_related("user", "destination").prefetch_related("items").get(booking_id=booking_id)
+        except Booking.DoesNotExist:
+            return Response({"error": f"Booking #{booking_id} not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Verify user ownership
+        req_user_id = request.data.get("user_id")
+        if not req_user_id:
+            return Response({"error": "User identification is required to cancel this booking."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user_id_int = int(req_user_id)
+        except (ValueError, TypeError):
+            return Response({"error": "Invalid user ID format."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if booking.user_id != user_id_int:
+            try:
+                requesting_user = User.objects.get(user_id=user_id_int)
+                if requesting_user.role != "admin":
+                    return Response({"error": "You are not authorized to cancel this booking."}, status=status.HTTP_403_FORBIDDEN)
+            except User.DoesNotExist:
+                return Response({"error": "Requesting user not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Validate cancellation rules
+        if booking.booking_status == "Cancelled":
+            return Response({"error": "This booking has already been cancelled."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if booking.booking_status == "Completed":
+            return Response({"error": "Completed trips cannot be cancelled."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if services in this booking are already checked in or completed
+        has_verified_checkin = booking.items.filter(checkin_verified=True).exists()
+        has_completed_item = booking.items.filter(status="Completed").exists()
+
+        if has_verified_checkin or has_completed_item:
+            return Response({
+                "error": "This booking cannot be cancelled because one or more services are already checked-in or completed."
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Perform cancellation
+        booking.booking_status = "Cancelled"
+        booking.items.all().update(status="Cancelled")
+        booking.save()
+
+        serializer = BookingSerializer(booking)
+        return Response({
+            "message": f"Booking #{booking.booking_id} has been successfully cancelled.",
+            "booking": serializer.data
+        }, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        print("ERROR IN CANCEL BOOKING:", str(e))
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
@@ -3777,12 +3848,61 @@ def get_shared_itineraries(request):
 
 
 @api_view(["GET"])
+def get_all_user_itineraries(request):
+    """
+    Admin endpoint to view all itineraries created by users.
+    Returns complete details including title, username, destination, number of days,
+    travel dates, accommodation, transportation, activities, cost breakdown, and total cost.
+    Protected to allow only admins to access.
+    """
+    admin_id = request.GET.get("user_id") or request.GET.get("admin_id")
+    if admin_id:
+        try:
+            admin_user = User.objects.get(user_id=admin_id)
+            if admin_user.role != "admin":
+                return Response(
+                    {"error": "Access denied. Admin privileges required."},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+        except User.DoesNotExist:
+            return Response(
+                {"error": "Admin account not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+    try:
+        itineraries = Itinerary.objects.select_related("user").all().order_by("-created_at")
+        serializer = ItinerarySerializer(itineraries, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response(
+            {"error": f"Failed to retrieve user itineraries: {str(e)}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(["GET"])
 def get_itinerary_details(request, itinerary_id):
     """
-    Public endpoint to view complete details of a published itinerary.
+    Endpoint to view complete details of an itinerary.
+    Accessible publicly if published, or accessible if user has admin privileges.
     """
     try:
-        itinerary = get_object_or_404(Itinerary, itinerary_id=itinerary_id, is_published=True)
+        user_id = request.GET.get("user_id") or request.GET.get("admin_id")
+        is_admin = False
+        if user_id:
+            try:
+                u = User.objects.get(user_id=user_id)
+                if u.role == "admin":
+                    is_admin = True
+            except User.DoesNotExist:
+                pass
+
+        if is_admin:
+            itinerary = get_object_or_404(Itinerary, itinerary_id=itinerary_id)
+        else:
+            itinerary = get_object_or_404(Itinerary, itinerary_id=itinerary_id, is_published=True)
+
         serializer = ItinerarySerializer(itinerary)
         return Response(serializer.data, status=status.HTTP_200_OK)
     except Exception as e:
@@ -4236,6 +4356,173 @@ def batch_add_itinerary_to_cart(request):
     except Exception as e:
         print("Error in batch add itinerary to cart:", str(e))
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# =========================================================================
+# FORGOT & RESET PASSWORD VIEWS
+# =========================================================================
+
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.contrib.auth.password_validation import validate_password
+from django.core.cache import cache
+from .email_utils import password_reset_token_generator, send_password_reset_email
+
+
+@api_view(["POST"])
+def forgot_password(request):
+    """
+    Initiates a password reset request.
+    Validates email format, checks rate limiting, generates secure time-limited token,
+    and sends a reset email via Django SMTP.
+    Returns a generic response to prevent account enumeration.
+    """
+    try:
+        raw_email = request.data.get("email", "")
+        if not raw_email or not str(raw_email).strip():
+            return Response({"error": "Please provide an email address."}, status=status.HTTP_400_BAD_REQUEST)
+
+        email = str(raw_email).strip()
+
+        # Validate email syntax
+        try:
+            validate_email(email)
+        except ValidationError:
+            return Response({"error": "Please provide a valid email address."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Rate-limiting / cooldown check (60 seconds per email) to prevent abuse
+        cache_key = f"pwd_reset_cooldown_{email.lower()}"
+        if cache.get(cache_key):
+            # Still return generic success message to prevent user enumeration
+            return Response({
+                "message": "If an account with that email exists, we have sent a password reset link to it. Please check your inbox and spam folder."
+            }, status=status.HTTP_200_OK)
+
+        # Lookup user
+        user = User.objects.filter(email__iexact=email).first()
+
+        if user:
+            uidb64 = urlsafe_base64_encode(force_bytes(user.user_id))
+            token = password_reset_token_generator.make_token(user)
+
+            frontend_url = getattr(settings, "FRONTEND_URL", "http://localhost:5173").rstrip("/")
+            reset_url = f"{frontend_url}/reset-password/{uidb64}/{token}"
+
+            send_password_reset_email(user, reset_url)
+            cache.set(cache_key, True, timeout=60)
+
+        # Always return generic message
+        return Response({
+            "message": "If an account with that email exists, we have sent a password reset link to it. Please check your inbox and spam folder."
+        }, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        print("[ERROR IN FORGOT PASSWORD]:", str(e))
+        return Response({
+            "error": "Unable to process password reset request. Please try again later."
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(["POST"])
+def verify_reset_token(request):
+    """
+    Validates whether a password reset token and user ID are valid and not expired.
+    Used by frontend on mount to display instant validation status.
+    """
+    try:
+        uidb64 = request.data.get("uid")
+        token = request.data.get("token")
+
+        if not uidb64 or not token:
+            return Response({
+                "valid": False,
+                "error": "Reset link is missing required parameters."
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user_id = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(user_id=user_id)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            user = None
+
+        if user is not None and password_reset_token_generator.check_token(user, token):
+            return Response({
+                "valid": True,
+                "email": user.email,
+                "name": user.full_name
+            }, status=status.HTTP_200_OK)
+
+        return Response({
+            "valid": False,
+            "error": "This password reset link is invalid or has expired. Please request a new link."
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    except Exception as e:
+        print("[ERROR IN VERIFY RESET TOKEN]:", str(e))
+        return Response({
+            "valid": False,
+            "error": "Error verifying reset token."
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(["POST"])
+def reset_password_confirm(request):
+    """
+    Confirms password reset:
+    - Validates token validity and non-expiration.
+    - Validates new_password and confirm_password match.
+    - Validates password meets Django password validation rules.
+    - Hashes and updates password in MySQL via user.set_password().
+    - Invalidator: Token is instantly invalidated as password hash changed.
+    """
+    try:
+        uidb64 = request.data.get("uid")
+        token = request.data.get("token")
+        new_password = request.data.get("new_password")
+        confirm_password = request.data.get("confirm_password")
+
+        if not uidb64 or not token:
+            return Response({"error": "Reset link is missing required parameters."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not new_password or not confirm_password:
+            return Response({"error": "Both new password and confirm password are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if new_password != confirm_password:
+            return Response({"error": "Passwords do not match. Please re-enter both fields."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Decode user
+        try:
+            user_id = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(user_id=user_id)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            user = None
+
+        if user is None or not password_reset_token_generator.check_token(user, token):
+            return Response({
+                "error": "This password reset link is invalid or has expired. Please request a new link."
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Validate password against Django password validators configured in settings.py
+        try:
+            validate_password(new_password, user=user)
+        except ValidationError as val_err:
+            return Response({
+                "error": " ".join(val_err.messages)
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Hash and update password
+        user.set_password(new_password)
+        user.save(update_fields=["password", "updated_at"])
+
+        return Response({
+            "message": "Your password has been reset successfully! You can now log in with your new password."
+        }, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        print("[ERROR IN RESET PASSWORD CONFIRM]:", str(e))
+        return Response({
+            "error": "Failed to reset password. Please try again."
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 

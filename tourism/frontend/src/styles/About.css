@@ -1,0 +1,632 @@
+/* =========================================================
+   ABOUT WANDERA PAGE STYLES
+   Color Scheme: Dark Forest Green (#18261f, #1e3a2f), Brand Teal (#55d6be)
+========================================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+.about-page-wrapper {
+    min-height: 100vh;
+    background: #f8fafc;
+    font-family: "Poppins", "Segoe UI", sans-serif;
+    color: #1e293b;
+    display: flex;
+    flex-direction: column;
+}
+
+.about-container {
+    max-width: 1060px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* SECTION 1: HERO SECTION */
+.about-hero {
+    min-height: 64vh;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.about-hero-overlay {
+    width: 100%;
+    min-height: 64vh;
+    background: linear-gradient(
+        rgba(15, 23, 42, 0.72),
+        rgba(24, 38, 31, 0.82)
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.about-hero-container {
+    max-width: 760px;
+    color: #ffffff;
+}
+
+.about-hero-badge {
+    display: inline-block;
+    background: rgba(85, 214, 190, 0.18);
+    color: #55d6be;
+    border: 1px solid rgba(85, 214, 190, 0.35);
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 14px;
+}
+
+.about-hero-title {
+    font-size: 38px;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.25;
+    margin: 0 0 12px;
+    letter-spacing: -0.5px;
+}
+
+.about-hero-subtitle {
+    font-size: 16px;
+    font-weight: 500;
+    color: #55d6be;
+    margin: 0 0 16px;
+    line-height: 1.5;
+}
+
+.about-hero-intro {
+    font-size: 13.5px;
+    color: #cbd5e1;
+    line-height: 1.65;
+    max-width: 640px;
+    margin: 0 auto 28px;
+}
+
+.about-hero-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.btn-about-hero-primary {
+    padding: 11px 26px;
+    background: #55d6be;
+    color: #063b36;
+    border: none;
+    border-radius: 25px;
+    font-size: 13.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 14px rgba(85, 214, 190, 0.3);
+}
+
+.btn-about-hero-primary:hover {
+    background: #3bbda5;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(85, 214, 190, 0.4);
+}
+
+.btn-about-hero-secondary {
+    padding: 11px 24px;
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 25px;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(6px);
+}
+
+.btn-about-hero-secondary:hover {
+    background: rgba(255, 255, 255, 0.22);
+    transform: translateY(-2px);
+}
+
+/* SECTION HEADERS (SHARED) */
+.about-section {
+    padding: 56px 0;
+}
+
+.about-section-header {
+    text-align: center;
+    margin-bottom: 34px;
+}
+
+.section-label {
+    display: inline-block;
+    color: #2b7a4b;
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 6px;
+}
+
+.about-section-header h2 {
+    font-size: 26px;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 8px;
+    letter-spacing: -0.4px;
+}
+
+.section-subtext {
+    font-size: 13.5px;
+    color: #64748b;
+    max-width: 540px;
+    margin: 0 auto;
+    line-height: 1.55;
+}
+
+.section-divider {
+    width: 48px;
+    height: 3px;
+    background: #55d6be;
+    border-radius: 2px;
+    margin: 14px auto 0;
+}
+
+/* SECTION 2: ABOUT WANDERA OVERVIEW */
+.about-overview-section {
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.about-overview-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 32px 36px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+}
+
+.overview-lead-text {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1e3a2f;
+    line-height: 1.6;
+    margin: 0 0 14px;
+}
+
+.overview-body-text {
+    font-size: 13.5px;
+    color: #475569;
+    line-height: 1.65;
+    margin: 0 0 26px;
+}
+
+.overview-highlights-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.highlight-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.highlight-icon {
+    font-size: 26px;
+    flex-shrink: 0;
+}
+
+.highlight-item strong {
+    display: block;
+    font-size: 13.5px;
+    color: #0f172a;
+    font-weight: 700;
+}
+
+.highlight-item small {
+    display: block;
+    font-size: 11.5px;
+    color: #64748b;
+}
+
+/* SECTION 3: OUR SERVICES GRID */
+.about-services-section {
+    background: #f8fafc;
+}
+
+.about-services-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+}
+
+.about-service-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 22px 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.about-service-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    border-color: #cbd5e1;
+}
+
+.service-card-icon-box {
+    width: 44px;
+    height: 44px;
+    background: #e2ece7;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    margin-bottom: 14px;
+}
+
+.service-card-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 8px;
+}
+
+.service-card-description {
+    font-size: 12.5px;
+    color: #64748b;
+    line-height: 1.55;
+    margin: 0 0 18px;
+    flex-grow: 1;
+}
+
+.btn-service-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: none;
+    color: #1e3a2f;
+    font-size: 12.5px;
+    font-weight: 700;
+    padding: 0;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn-service-link:hover {
+    color: #2b7a4b;
+}
+
+.service-link-arrow {
+    transition: transform 0.15s ease;
+}
+
+.btn-service-link:hover .service-link-arrow {
+    transform: translateX(4px);
+}
+
+/* SECTION 4: HOW WANDERA WORKS */
+.about-how-it-works-section {
+    background: #ffffff;
+    border-top: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.about-steps-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.about-step-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 26px 22px;
+    position: relative;
+    text-align: left;
+}
+
+.step-number-badge {
+    width: 40px;
+    height: 40px;
+    background: #1e3a2f;
+    color: #55d6be;
+    font-size: 15px;
+    font-weight: 800;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+    letter-spacing: 0.5px;
+}
+
+.step-card-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 8px;
+}
+
+.step-card-description {
+    font-size: 12.5px;
+    color: #64748b;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* SECTION 5: WHY CHOOSE WANDERA? */
+.about-benefits-section {
+    background: #f8fafc;
+}
+
+.about-benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.about-benefit-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px 22px;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.benefit-icon {
+    font-size: 26px;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.benefit-title {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 5px;
+}
+
+.benefit-description {
+    font-size: 12.5px;
+    color: #64748b;
+    line-height: 1.55;
+    margin: 0;
+}
+
+/* SECTION 6: CALL TO ACTION */
+.about-cta-section {
+    padding: 40px 0 60px;
+    background: #f8fafc;
+}
+
+.about-cta-card {
+    background: linear-gradient(135deg, #18261f 0%, #1e3a2f 100%);
+    color: #ffffff;
+    border-radius: 16px;
+    padding: 44px 32px;
+    text-align: center;
+    box-shadow: 0 8px 24px rgba(24, 38, 31, 0.15);
+}
+
+.cta-small-label {
+    display: inline-block;
+    color: #55d6be;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 8px;
+}
+
+.cta-heading {
+    font-size: 28px;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0 0 10px;
+    letter-spacing: -0.4px;
+}
+
+.cta-description {
+    font-size: 13.5px;
+    color: #cbd5e1;
+    max-width: 520px;
+    margin: 0 auto 26px;
+    line-height: 1.6;
+}
+
+.about-cta-actions {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.btn-cta-primary {
+    padding: 11px 26px;
+    background: #55d6be;
+    color: #063b36;
+    border: none;
+    border-radius: 25px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(85, 214, 190, 0.3);
+}
+
+.btn-cta-primary:hover {
+    background: #3bbda5;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(85, 214, 190, 0.4);
+}
+
+.btn-cta-secondary {
+    padding: 11px 24px;
+    background: transparent;
+    color: #ffffff;
+    border: 1.5px solid rgba(255, 255, 255, 0.4);
+    border-radius: 25px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-cta-secondary:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: #ffffff;
+    transform: translateY(-2px);
+}
+
+/* FOOTER */
+.about-footer {
+    background: #18261f;
+    color: #cbd5e1;
+    padding: 36px 0 24px;
+    margin-top: auto;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.about-footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 22px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    flex-wrap: wrap;
+    gap: 18px;
+}
+
+.about-footer-brand h3 {
+    margin: 0 0 2px;
+    font-size: 18px;
+    font-weight: 800;
+    color: #55d6be;
+}
+
+.about-footer-brand p {
+    margin: 0;
+    font-size: 11.5px;
+    color: #94a3b8;
+}
+
+.about-footer-links {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+}
+
+.about-footer-links a {
+    color: #cbd5e1;
+    text-decoration: none;
+    font-size: 12.5px;
+    font-weight: 500;
+    transition: color 0.15s ease;
+}
+
+.about-footer-links a:hover {
+    color: #55d6be;
+}
+
+.about-footer-bottom {
+    text-align: center;
+    padding-top: 18px;
+}
+
+.about-footer-bottom p {
+    margin: 0;
+    font-size: 11px;
+    color: #64748b;
+}
+
+/* RESPONSIVE DESIGN */
+@media (max-width: 960px) {
+    .about-services-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .overview-highlights-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .about-steps-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .about-benefits-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .about-hero-title {
+        font-size: 28px;
+    }
+
+    .about-hero-subtitle {
+        font-size: 14px;
+    }
+
+    .about-section {
+        padding: 38px 0;
+    }
+
+    .about-section-header h2 {
+        font-size: 22px;
+    }
+
+    .about-services-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .overview-highlights-row {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .about-overview-card {
+        padding: 22px 18px;
+    }
+
+    .about-cta-card {
+        padding: 32px 20px;
+    }
+
+    .cta-heading {
+        font-size: 22px;
+    }
+
+    .about-footer-content {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .about-footer-links {
+        flex-direction: column;
+        gap: 8px;
+    }
+}

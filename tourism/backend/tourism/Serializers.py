@@ -459,12 +459,17 @@ class HiddenSpotSerializer(serializers.ModelSerializer):
 class ItinerarySerializer(serializers.ModelSerializer):
     author_name = serializers.CharField(source="user.full_name", read_only=True)
     author_email = serializers.CharField(source="user.email", read_only=True)
+    username = serializers.CharField(source="user.full_name", read_only=True)
+    user_email = serializers.CharField(source="user.email", read_only=True)
+    travel_dates = serializers.SerializerMethodField()
 
     class Meta:
         model = Itinerary
         fields = [
             "itinerary_id",
             "user",
+            "username",
+            "user_email",
             "author_name",
             "author_email",
             "title",
@@ -481,7 +486,20 @@ class ItinerarySerializer(serializers.ModelSerializer):
             "total_cost",
             "travel_tips",
             "is_published",
+            "travel_dates",
             "created_at",
             "updated_at",
         ]
         read_only_fields = ["itinerary_id", "created_at", "updated_at"]
+
+    def get_travel_dates(self, obj):
+        try:
+            from .models import Booking
+            b = Booking.objects.filter(user=obj.user, destination__name__icontains=obj.destination).order_by("-created_at").first()
+            if b and b.start_date:
+                if b.end_date and b.end_date != b.start_date:
+                    return f"{b.start_date} to {b.end_date}"
+                return str(b.start_date)
+        except Exception:
+            pass
+        return ""

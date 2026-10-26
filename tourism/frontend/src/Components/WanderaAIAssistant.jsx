@@ -84,13 +84,16 @@ export default function WanderaAIAssistant() {
   const [otherRecommendations, setOtherRecommendations] = useState([]);
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
-  // Hide AI Assistant on Admin and Provider dashboards
+  // Hide AI Assistant on Admin, Provider, and Authentication pages
   const role = localStorage.getItem("role");
   const isAdmin = location.pathname.startsWith("/admin") || role === "admin";
   const isProvider =
     location.pathname.startsWith("/provider") || role === "service_provider";
+  const isAuthPage =
+    ["/login", "/signup", "/forgot-password"].includes(location.pathname) ||
+    location.pathname.startsWith("/reset-password");
 
-  if (isAdmin || isProvider) {
+  if (isAdmin || isProvider || isAuthPage) {
     return null;
   }
 

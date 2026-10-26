@@ -79,6 +79,15 @@ export default function AdminNavbar() {
                 </NavLink>
 
                 <NavLink
+                    to="/admin/itineraries"
+                    className={({ isActive }) =>
+                        isActive ? "admin-menu-item active" : "admin-menu-item"
+                    }
+                >
+                    <span>User Itineraries</span>
+                </NavLink>
+
+                <NavLink
                     to="/admin/add-destination"
                     className={({ isActive }) =>
                         isActive ? "admin-menu-item active" : "admin-menu-item"

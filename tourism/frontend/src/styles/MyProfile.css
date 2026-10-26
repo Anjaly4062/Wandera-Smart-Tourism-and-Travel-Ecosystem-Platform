@@ -1006,6 +1006,38 @@
     font-size: 12.5px;
 }
 
+.profile-bookings-card {
+    padding: 16px 20px;
+}
+
+.profile-bookings-action-row {
+    display: flex;
+    justify-content: flex-start;
+    padding-top: 2px;
+}
+
+.btn-open-my-bookings {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 7px;
+    background: #1e3a2f;
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-open-my-bookings:hover {
+    background: #2d5a49;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(30, 58, 47, 0.15);
+}
+
 /* RESPONSIVE */
 @media (max-width: 700px) {
     .profile-page {

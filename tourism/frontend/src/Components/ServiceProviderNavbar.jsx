@@ -69,23 +69,7 @@ export default function ServiceProviderNavbar() {
                     <span>Bookings</span>
                 </NavLink>
 
-                <NavLink
-                    to="/provider/availability"
-                    className={({ isActive }) =>
-                        isActive ? "provider-menu-item active" : "provider-menu-item"
-                    }
-                >
-                    <span>Availability</span>
-                </NavLink>
-
-                <NavLink
-                    to="/provider/reviews"
-                    className={({ isActive }) =>
-                        isActive ? "provider-menu-item active" : "provider-menu-item"
-                    }
-                >
-                    <span>Reviews</span>
-                </NavLink>
+                
             </nav>
 
             {/* BOTTOM DIVIDER */}
