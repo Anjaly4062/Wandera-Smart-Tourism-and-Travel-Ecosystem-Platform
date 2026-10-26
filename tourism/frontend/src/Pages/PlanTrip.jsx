@@ -523,6 +523,7 @@ export default function PlanTrip() {
                     booking_id: pendingBooking.booking_id
                 });
                 const orderData = orderRes.data;
+                const bookingId = pendingBooking.booking_id || orderData.booking_id;
 
                 // 2. Configure and open Razorpay Standard Checkout (Restricted to Card Payment only)
                 const options = {
@@ -530,7 +531,7 @@ export default function PlanTrip() {
                     amount: orderData.amount,
                     currency: orderData.currency || "INR",
                     name: "Wandera Smart Tourism",
-                    description: `Booking #${pendingBooking.booking_id} - ${pendingBooking.destination?.name || "Kerala Trip"}`,
+                    description: `Booking #${bookingId} - ${pendingBooking.destination?.name || "Kerala Trip"}`,
                     order_id: orderData.order_id,
                     config: {
                         display: {
@@ -546,7 +547,7 @@ export default function PlanTrip() {
                             },
                             sequence: ["block.card_block"],
                             preferences: {
-                                show_default_blocks: false
+                                show_default_blocks: true
                             }
                         }
                     },
@@ -563,7 +564,7 @@ export default function PlanTrip() {
                             setPaymentProcessing(true);
                             // 3. Verify signature on backend
                             const verifyRes = await api.post("payment/verify/", {
-                                booking_id: pendingBooking.booking_id,
+                                booking_id: bookingId,
                                 razorpay_payment_id: razorpayResponse.razorpay_payment_id,
                                 razorpay_order_id: razorpayResponse.razorpay_order_id,
                                 razorpay_signature: razorpayResponse.razorpay_signature,
@@ -581,9 +582,9 @@ export default function PlanTrip() {
                         }
                     },
                     prefill: {
-                        name: orderData.customer?.name || "",
-                        email: orderData.customer?.email || "",
-                        contact: orderData.customer?.phone || ""
+                        name: String(orderData.customer?.name || "").trim(),
+                        email: String(orderData.customer?.email || "").trim(),
+                        contact: String(orderData.customer?.phone || "").trim()
                     },
                     theme: {
                         color: "#18261f"
