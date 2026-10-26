@@ -1,9 +1,79 @@
 import logging
+import os
+import base64
+import requests
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 from .pdf_utils import generate_booking_pdf
 
 logger = logging.getLogger(__name__)
+
+
+def _send_email_message(msg):
+    """
+    Send via Brevo HTTPS API when BREVO_API_KEY is configured (Render).
+    Otherwise use Django's configured email backend (local Gmail SMTP).
+    Supports HTML/text bodies and ordinary Django tuple attachments.
+    """
+    api_key = os.environ.get("BREVO_API_KEY")
+
+    # No Brevo key: preserve the existing local SMTP behavior.
+    if not api_key:
+        return msg.send(fail_silently=False)
+
+    sender_email = os.environ.get("BREVO_SENDER_EMAIL", "").strip()
+    sender_name = os.environ.get("BREVO_SENDER_NAME", "Wandera").strip() or "Wandera"
+    if not sender_email:
+        raise RuntimeError("BREVO_SENDER_EMAIL is missing from the environment.")
+
+    payload = {
+        "sender": {"name": sender_name, "email": sender_email},
+        "to": [{"email": address} for address in msg.to],
+        "subject": msg.subject,
+        "textContent": msg.body or "",
+    }
+
+    # EmailMultiAlternatives stores alternatives as (content, mimetype) tuples.
+    for content, mimetype in getattr(msg, "alternatives", []) or []:
+        if mimetype == "text/html":
+            payload["htmlContent"] = content
+            break
+
+    attachments = []
+    for attachment in getattr(msg, "attachments", []) or []:
+        # Django's msg.attach(filename, content, mimetype) stores a 3-tuple.
+        if isinstance(attachment, tuple) and len(attachment) == 3:
+            filename, content, mimetype = attachment
+            if isinstance(content, str):
+                content = content.encode("utf-8")
+            elif not isinstance(content, bytes):
+                content = bytes(content)
+            attachments.append({
+                "name": filename,
+                "content": base64.b64encode(content).decode("ascii"),
+            })
+
+    if attachments:
+        payload["attachment"] = attachments
+
+    response = requests.post(
+        "https://api.brevo.com/v3/smtp/email",
+        headers={
+            "accept": "application/json",
+            "api-key": api_key,
+            "content-type": "application/json",
+        },
+        json=payload,
+        timeout=25,
+    )
+    if not response.ok:
+        logger.error("Brevo email API failed: HTTP %s - %s", response.status_code, response.text[:1000])
+        response.raise_for_status()
+
+    logger.info("Brevo accepted email to %s (messageId=%s)", ", ".join(msg.to), response.json().get("messageId"))
+    return 1
+
+
 
 def send_booking_confirmation_email(booking, service_otps=None):
     """
@@ -206,7 +276,7 @@ https://wandera.com
 
         # 5. Send Email
         print(f"[EMAIL] Sending confirmation email to: {recipient_email}...")
-        msg.send(fail_silently=False)
+        _send_email_message(msg)
         print(f"[SUCCESS] Email sent successfully to: {recipient_email}")
         logger.info(f"Booking confirmation email sent successfully to {recipient_email} for Booking #{booking.booking_id}")
         return True
@@ -350,7 +420,7 @@ https://wandera.com
         msg.attach_alternative(html_content, "text/html")
 
         print(f"[EMAIL] Sending checkout OTP email to: {recipient_email}...")
-        msg.send(fail_silently=False)
+        _send_email_message(msg)
         print(f"[SUCCESS] Checkout OTP email sent successfully to: {recipient_email}")
         logger.info(f"Checkout OTP email sent successfully to {recipient_email} for Item #{booking_item.booking_item_id}")
         return True
@@ -467,7 +537,7 @@ https://wandera.com
         msg.attach_alternative(html_content, "text/html")
 
         print(f"[WANDERA EMAIL] Sending password reset email to: {recipient_email}...")
-        msg.send(fail_silently=False)
+        _send_email_message(msg)
         print(f"[WANDERA EMAIL SUCCESS] Password reset email sent to: {recipient_email}")
         logger.info(f"Password reset email sent to {recipient_email}")
         return True
